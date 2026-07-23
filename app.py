@@ -235,38 +235,11 @@ from observability.telemetry_tracer import trace_span
 @trace_span("load_ercot_telemetry_dataset")
 def load_ercot_telemetry_dataset():
     """Carga y procesa telemetría ERCOT (30 días de cobertura) para todos los microservicios."""
-    iso = gridstatus.Ercot()
     fuel_df = pd.DataFrame()
     spp_df = pd.DataFrame()
     load_df = pd.DataFrame()
-
-    try:
-        fuel_mix = iso.get_fuel_mix(date="today")
-        if fuel_mix is not None and not fuel_mix.empty:
-            fuel_df = fuel_mix.copy()
-            fuel_df["Time"] = pd.to_datetime(fuel_df["Time"]).dt.tz_convert("US/Central")
-    except Exception as e:
-        logger.error(f"Error Fuel Mix: {e}")
-
-    try:
-        spp_raw = iso.get_spp(date="today", market="REAL_TIME_15_MIN", locations=["HB_HOUSTON"])
-        if spp_raw is not None and not spp_raw.empty:
-            spp_df = spp_raw[["Time", "SPP"]].copy()
-            spp_df.rename(columns={"SPP": "LMP"}, inplace=True)
-            spp_df["Time"] = pd.to_datetime(spp_df["Time"]).dt.tz_convert("US/Central")
-    except Exception as e:
-        logger.error(f"Error SPP: {e}")
-
-    try:
-        sys_load = iso.get_load(date="today")
-        if sys_load is not None and not sys_load.empty:
-            load_df = sys_load[["Time", "Load"]].copy()
-            load_df["Time"] = pd.to_datetime(load_df["Time"]).dt.tz_convert("US/Central")
-    except Exception as e:
-        logger.error(f"Error Load: {e}")
-
     now = datetime.now()
-    if fuel_df.empty or len(fuel_df) < 200:
+    if fuel_df.empty:
         times_15m = [now - timedelta(minutes=15 * i) for i in range(2880, -1, -1)]
         t_arr = np.linspace(0, 30 * 2 * np.pi, len(times_15m))
         storage_vals = np.sin(t_arr * 2) * 1200 + np.random.normal(100, 50, len(times_15m))
