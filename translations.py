@@ -131,7 +131,14 @@ TRANSLATIONS = {
         "chart_dispatch_breakdown": "📊 Desglose de Despachos BESS (Conteo de Intervalos)",
         "btn_export_csv": "📥 Exportar Simulación Financiera BESS (CSV)",
         "footer_created_by": "GridFlow-TX Enterprise Platform | Desarrollado por Joan Ricardo Roa Mora",
-        "footer_github": "Ver Código en GitHub"
+        "footer_github": "Ver Código en GitHub",
+        "ml_forecast_horizon_label": "Horizonte de Predicción ML (Series Temporales):",
+        "ml_table_header": "📋 Tabla de Predicciones Nodal LMP & Demanda ERCOT (Próximas {horizon} Horas)",
+        "ml_table_caption": "Predicciones paso a paso a intervalos de 15 minutos basadas en regresión autogresiva y patrones de red.",
+        "btn_export_ml_csv": "📥 Exportar Tabla de Predicciones ML ({horizon}h CSV)",
+        "metric_pred_peak_lmp": "Precio Pico Predicho ML",
+        "metric_pred_min_lmp": "Precio Mínimo Predicho ML",
+        "metric_pred_avg_demand": "Demanda Promedio Estimada"
     },
     "en": {
         "page_title": "⚡ GridFlow-TX | Real-Time ERCOT Telemetry & BESS Analytics",
@@ -261,7 +268,14 @@ TRANSLATIONS = {
         "chart_dispatch_breakdown": "📊 BESS Dispatch Breakdown (Interval Count)",
         "btn_export_csv": "📥 Export BESS Financial Simulation (CSV)",
         "footer_created_by": "GridFlow-TX Enterprise Platform | Developed by Joan Ricardo Roa Mora",
-        "footer_github": "View Source Code on GitHub"
+        "footer_github": "View Source Code on GitHub",
+        "ml_forecast_horizon_label": "ML Forecasting Horizon (Time Series):",
+        "ml_table_header": "📋 Nodal LMP & ERCOT Grid Demand Prediction Table (Next {horizon} Hours)",
+        "ml_table_caption": "Step-by-step 15-minute predictions based on autoregressive regression and grid load patterns.",
+        "btn_export_ml_csv": "📥 Export ML Prediction Table ({horizon}h CSV)",
+        "metric_pred_peak_lmp": "ML Predicted Peak Price",
+        "metric_pred_min_lmp": "ML Predicted Min Price",
+        "metric_pred_avg_demand": "Estimated Average Demand"
     },
     "fr": {
         "page_title": "⚡ GridFlow-TX | Télémétrie ERCOT et Analyse BESS en Temps Réel",
@@ -391,7 +405,14 @@ TRANSLATIONS = {
         "chart_dispatch_breakdown": "📊 Répartition de la répartition BESS (Nombre d'intervalles)",
         "btn_export_csv": "📥 Exporter la simulation financière BESS (CSV)",
         "footer_created_by": "GridFlow-TX Enterprise Platform | Développé par Joan Ricardo Roa Mora",
-        "footer_github": "Voir le code sur GitHub"
+        "footer_github": "Voir le code sur GitHub",
+        "ml_forecast_horizon_label": "Horizon de prévision ML (Séries temporelles) :",
+        "ml_table_header": "📋 Tableau de prédiction du LMP nodal et de la demande du réseau ERCOT ({horizon} prochaines heures)",
+        "ml_table_caption": "Prédictions pas à pas sur 15 minutes basées sur la régression autorégressive.",
+        "btn_export_ml_csv": "📥 Exporter le tableau de prédiction ML (CSV {horizon}h)",
+        "metric_pred_peak_lmp": "Prix de pic prédit ML",
+        "metric_pred_min_lmp": "Prix min prédit ML",
+        "metric_pred_avg_demand": "Demande moyenne estimée"
     },
     "zh": {
         "page_title": "⚡ GridFlow-TX | 德州ERCOT实时遥测与BESS储能分析平台",
@@ -521,7 +542,14 @@ TRANSLATIONS = {
         "chart_dispatch_breakdown": "📊 BESS 调度明细 (间隔计数)",
         "btn_export_csv": "📥 导出 BESS 财务模拟 (CSV)",
         "footer_created_by": "GridFlow-TX Enterprise Platform | 由 Joan Ricardo Roa Mora 开发",
-        "footer_github": "在 GitHub 上查看源码"
+        "footer_github": "在 GitHub 上查看源码",
+        "ml_forecast_horizon_label": "ML 预测时间范围 (时间序列)：",
+        "ml_table_header": "📋 节点 LMP 与 ERCOT 电网需求预测表 (未来 {horizon} 小时)",
+        "ml_table_caption": "基于自回归模型和电网负荷模式的 15 分钟逐步预测。",
+        "btn_export_ml_csv": "📥 导出 ML 预测数据表 ({horizon}小时 CSV)",
+        "metric_pred_peak_lmp": "ML 预测峰值价格",
+        "metric_pred_min_lmp": "ML 预测最低价格",
+        "metric_pred_avg_demand": "预计平均需求"
     },
     "ko": {
         "page_title": "⚡ GridFlow-TX | 실시간 ERCOT 텔레메트리 및 BESS 분석 플랫폼",
@@ -651,7 +679,14 @@ TRANSLATIONS = {
         "chart_dispatch_breakdown": "📊 BESS 급전 내역 (간격 수)",
         "btn_export_csv": "📥 BESS 재무 시뮬레이션 내보내기 (CSV)",
         "footer_created_by": "GridFlow-TX Enterprise Platform | Joan Ricardo Roa Mora 개발",
-        "footer_github": "GitHub에서 소스 코드 보기"
+        "footer_github": "GitHub에서 소스 코드 보기",
+        "ml_forecast_horizon_label": "ML 예측 기간 (시계열):",
+        "ml_table_header": "📋 노달 LMP 및 ERCOT 전력망 수요 예측 표 (향후 {horizon}시간)",
+        "ml_table_caption": "자기회귀 회귀 및 전력망 부하 패턴에 기반한 15분 단위 예측.",
+        "btn_export_ml_csv": "📥 ML 예측 데이터 표 내보내기 ({horizon}시간 CSV)",
+        "metric_pred_peak_lmp": "ML 예측 피크 가격",
+        "metric_pred_min_lmp": "ML 예측 최저 가격",
+        "metric_pred_avg_demand": "예상 평균 수요"
     },
     "it": {
         "page_title": "⚡ GridFlow-TX | Telemetria ERCOT in Tempo Reale & Analitica BESS",
@@ -781,7 +816,14 @@ TRANSLATIONS = {
         "chart_dispatch_breakdown": "📊 Dettaglio del dispacciamento BESS (Conteggio intervalli)",
         "btn_export_csv": "📥 Esporta simulazione finanziaria BESS (CSV)",
         "footer_created_by": "GridFlow-TX Enterprise Platform | Sviluppato da Joan Ricardo Roa Mora",
-        "footer_github": "Vedi il codice su GitHub"
+        "footer_github": "Vedi il codice su GitHub",
+        "ml_forecast_horizon_label": "Orizzonte di previsione ML (Serie temporali):",
+        "ml_table_header": "📋 Tabella di previsione LMP nodale e domanda di rete ERCOT (Prossime {horizon} Ore)",
+        "ml_table_caption": "Previsioni passo-passo a intervalli di 15 minuti basate su regressione autoregressiva.",
+        "btn_export_ml_csv": "📥 Esporta tabella previsioni ML (CSV {horizon}h)",
+        "metric_pred_peak_lmp": "Prezzo di picco previsto ML",
+        "metric_pred_min_lmp": "Prezzo minimo previsto ML",
+        "metric_pred_avg_demand": "Domanda media stimata"
     },
     "pt": {
         "page_title": "⚡ GridFlow-TX | Telemetria ERCOT em Tempo Real & Analítica BESS",
@@ -911,7 +953,14 @@ TRANSLATIONS = {
         "chart_dispatch_breakdown": "📊 Detalhamento de Despachos BESS (Contagem de Intervalos)",
         "btn_export_csv": "📥 Exportar Simulação Financeira BESS (CSV)",
         "footer_created_by": "GridFlow-TX Enterprise Platform | Desenvolvido por Joan Ricardo Roa Mora",
-        "footer_github": "Ver Código no GitHub"
+        "footer_github": "Ver Código no GitHub",
+        "ml_forecast_horizon_label": "Horizonte de Previsão ML (Séries Temporais):",
+        "ml_table_header": "📋 Tabela de Previsão de LMP Nodal e Demanda da Rede ERCOT (Próximas {horizon} Horas)",
+        "ml_table_caption": "Previsões passo a passo a cada 15 minutos baseadas em regressão autorregressiva.",
+        "btn_export_ml_csv": "📥 Exportar Tabela de Previsão ML (CSV {horizon}h)",
+        "metric_pred_peak_lmp": "Preço de Pico Previsto ML",
+        "metric_pred_min_lmp": "Preço Mínimo Previsto ML",
+        "metric_pred_avg_demand": "Demanda Média Estimada"
     }
 }
 

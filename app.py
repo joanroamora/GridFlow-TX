@@ -30,8 +30,22 @@ st.set_page_config(
 st.markdown(
     """
 <style>
+    @keyframes ambientGlow {
+        0% {
+            background-position: 0% 50%;
+        }
+        50% {
+            background-position: 100% 50%;
+        }
+        100% {
+            background-position: 0% 50%;
+        }
+    }
+
     .stApp {
-        background-color: #0B0E14;
+        background: linear-gradient(-45deg, #060911, #0D1322, #181B34, #0B0E14);
+        background-size: 400% 400%;
+        animation: ambientGlow 20s ease infinite;
         color: #E2E8F0;
     }
     

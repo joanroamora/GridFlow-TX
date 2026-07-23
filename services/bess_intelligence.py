@@ -95,20 +95,22 @@ def run_bess_arbitrage_optimization(
     return df
 
 
-def train_ml_short_term_forecast(spp_df: pd.DataFrame, horizon_hours: int = 4) -> pd.DataFrame:
+def train_ml_short_term_forecast(spp_df: pd.DataFrame, load_df: pd.DataFrame = None, horizon_hours: int = 8) -> pd.DataFrame:
     """
-    Modelo de Machine Learning ligero (Ridge Regression con Lags y Horario)
-    para predecir LMP y Demanda en las próximas 3 a 6 horas (12-24 intervalos de 15m).
+    Modelo de Machine Learning en series temporales para predecir LMP y Demanda ERCOT
+    en horizontes extendidos de 3, 6, 8, 12, 16 o 24 horas (intervalos de 15m).
     """
     if spp_df.empty or len(spp_df) < 24:
-        # Retornar fallback forecast si no hay suficientes datos
         now = spp_df["Time"].max() if not spp_df.empty else datetime.now()
-        future_times = [now + timedelta(minutes=15 * i) for i in range(1, horizon_hours * 4 + 1)]
+        future_steps = horizon_hours * 4
+        future_times = [now + timedelta(minutes=15 * i) for i in range(1, future_steps + 1)]
         return pd.DataFrame({
             "Time": future_times,
-            "Pred_LMP": [35.0 + np.sin(i * 0.5) * 15.0 for i in range(len(future_times))],
-            "Pred_LMP_Lower": [25.0 for _ in range(len(future_times))],
-            "Pred_LMP_Upper": [55.0 for _ in range(len(future_times))],
+            "Pred_LMP": [35.0 + np.sin(i * 0.4) * 15.0 for i in range(len(future_times))],
+            "Pred_LMP_Lower": [20.0 for _ in range(len(future_times))],
+            "Pred_LMP_Upper": [60.0 for _ in range(len(future_times))],
+            "Pred_Demand": [65000.0 + np.sin(i * 0.3) * 5000.0 for i in range(len(future_times))],
+            "Recommended_Action": ["HOLD" for _ in range(len(future_times))],
         })
 
     df = spp_df.copy().sort_values("Time").reset_index(drop=True)
@@ -126,7 +128,18 @@ def train_ml_short_term_forecast(spp_df: pd.DataFrame, horizon_hours: int = 4) -
     model = make_pipeline(StandardScaler(), Ridge(alpha=1.0))
     model.fit(X, y)
 
-    # Generar predict en horizonte futuro
+    # Entrenar modelo secundario para demanda de carga
+    load_model = None
+    if load_df is not None and not load_df.empty and "Load" in load_df.columns:
+        ldf = load_df.copy().sort_values("Time").reset_index(drop=True)
+        ldf["Hour"] = ldf["Time"].dt.hour
+        ldf["Minute"] = ldf["Time"].dt.minute
+        ldf["Lag1"] = ldf["Load"].shift(1).bfill()
+        ldf["RollingMean"] = ldf["Load"].rolling(4, min_periods=1).mean()
+        load_features = ["Hour", "Minute", "Lag1", "RollingMean"]
+        load_model = make_pipeline(StandardScaler(), Ridge(alpha=0.5))
+        load_model.fit(ldf[load_features], ldf["Load"])
+
     now = df["Time"].max()
     future_steps = horizon_hours * 4
     future_times = [now + timedelta(minutes=15 * i) for i in range(1, future_steps + 1)]
@@ -136,7 +149,11 @@ def train_ml_short_term_forecast(spp_df: pd.DataFrame, horizon_hours: int = 4) -
     last_lag2 = float(df["Lag2"].iloc[-1])
     rolling_val = float(df["RollingMean"].iloc[-1])
 
-    predictions = []
+    last_load = float(load_df["Load"].iloc[-1]) if load_df is not None and not load_df.empty else 68000.0
+    load_rolling_val = last_load
+
+    predictions_lmp = []
+    predictions_demand = []
     curr_lag1, curr_lag2, curr_lag4 = last_lmp, last_lag1, last_lag2
 
     for ftime in future_times:
@@ -148,24 +165,52 @@ def train_ml_short_term_forecast(spp_df: pd.DataFrame, horizon_hours: int = 4) -
             "Lag4": curr_lag4,
             "RollingMean": rolling_val
         }])
-        pred_val = float(model.predict(feat_vec)[0])
-        pred_val = max(5.0, pred_val) # Clamp valores plausibles
-        predictions.append(pred_val)
+        pred_lmp = float(model.predict(feat_vec)[0])
+        pred_lmp = max(5.0, pred_lmp)
+        predictions_lmp.append(pred_lmp)
 
-        # Actualizar autoregresión
+        if load_model is not None:
+            lfeat_vec = pd.DataFrame([{
+                "Hour": ftime.hour,
+                "Minute": ftime.minute,
+                "Lag1": last_load,
+                "RollingMean": load_rolling_val
+            }])
+            pred_demand = float(load_model.predict(lfeat_vec)[0])
+            last_load = pred_demand
+            load_rolling_val = (load_rolling_val * 0.75) + (pred_demand * 0.25)
+        else:
+            pred_demand = 68000.0 + np.sin(ftime.hour / 24.0 * 2 * np.pi) * 12000.0
+
+        predictions_demand.append(pred_demand)
+
         curr_lag4 = curr_lag2
         curr_lag2 = curr_lag1
-        curr_lag1 = pred_val
-        rolling_val = (rolling_val * 0.75) + (pred_val * 0.25)
+        curr_lag1 = pred_lmp
+        rolling_val = (rolling_val * 0.75) + (pred_lmp * 0.25)
 
-    preds_arr = np.array(predictions)
-    std_err = np.std(df["LMP"].tail(24)) * 0.25
+    preds_arr = np.array(predictions_lmp)
+    std_err = np.std(df["LMP"].tail(48)) * 0.25
+
+    p25 = float(df["LMP"].quantile(0.25))
+    p75 = float(df["LMP"].quantile(0.75))
+
+    actions = []
+    for p in preds_arr:
+        if p >= p75:
+            actions.append("⚡ DISCHARGE")
+        elif p <= p25:
+            actions.append("🔌 CHARGE")
+        else:
+            actions.append("⏸️ HOLD")
 
     return pd.DataFrame({
         "Time": future_times,
         "Pred_LMP": preds_arr,
         "Pred_LMP_Lower": np.maximum(0, preds_arr - std_err * 1.96),
         "Pred_LMP_Upper": preds_arr + std_err * 1.96,
+        "Pred_Demand": predictions_demand,
+        "Recommended_Action": actions,
     })
 
 
@@ -198,7 +243,12 @@ def render_bess_intelligence(current_lang: str, spp_df: pd.DataFrame, fuel_df: p
     power_mw = st.sidebar.number_input(t("param_power_mw"), min_value=5.0, max_value=500.0, value=25.0, step=5.0)
     rte_pct = st.sidebar.slider(t("param_rte"), min_value=70.0, max_value=98.0, value=88.0, step=1.0)
     initial_soc = st.sidebar.slider(t("param_initial_soc"), min_value=0.0, max_value=100.0, value=25.0, step=5.0)
-    forecast_horizon = st.sidebar.select_slider("Horizonte de Predicción ML:", options=[3, 4, 5, 6], value=4, format_func=lambda x: f"{x} Horas")
+    forecast_horizon = st.sidebar.select_slider(
+        t("ml_forecast_horizon_label"),
+        options=[3, 6, 8, 12, 16, 24],
+        value=8,
+        format_func=lambda x: f"{x} Horas"
+    )
 
     # 2. EJECUTAR MOTORES DE OPTIMIZACIÓN Y FORECASTING ML
     opt_df = run_bess_arbitrage_optimization(
@@ -209,7 +259,7 @@ def render_bess_intelligence(current_lang: str, spp_df: pd.DataFrame, fuel_df: p
         initial_soc_pct=initial_soc
     )
 
-    forecast_df = train_ml_short_term_forecast(spp_df, horizon_hours=forecast_horizon)
+    forecast_df = train_ml_short_term_forecast(spp_df, load_df=load_df, horizon_hours=forecast_horizon)
 
     # 3. RECOMENDACIÓN EN TIEMPO REAL Y TARJETAS DE KPIS FINANCIEROS
     latest_lmp = float(spp_df["LMP"].iloc[-1]) if not spp_df.empty else 0.0
@@ -360,6 +410,42 @@ def render_bess_intelligence(current_lang: str, spp_df: pd.DataFrame, fuel_df: p
         st.caption(t("ml_forecast_desc"))
 
         if not forecast_df.empty:
+            pred_peak_lmp = float(forecast_df["Pred_LMP_Upper"].max())
+            pred_min_lmp = float(forecast_df["Pred_LMP_Lower"].min())
+            pred_avg_demand = float(forecast_df["Pred_Demand"].mean())
+
+            fc_col1, fc_col2, fc_col3 = st.columns(3)
+            with fc_col1:
+                st.markdown(
+                    f"""
+                    <div class="metric-card">
+                        <div class="metric-label">{t('metric_pred_peak_lmp')} ({forecast_horizon}h)</div>
+                        <div class="metric-value" style="color: #EF4444;">${pred_peak_lmp:.2f} / MWh</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+            with fc_col2:
+                st.markdown(
+                    f"""
+                    <div class="metric-card">
+                        <div class="metric-label">{t('metric_pred_min_lmp')} ({forecast_horizon}h)</div>
+                        <div class="metric-value" style="color: #10B981;">${pred_min_lmp:.2f} / MWh</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+            with fc_col3:
+                st.markdown(
+                    f"""
+                    <div class="metric-card">
+                        <div class="metric-label">{t('metric_pred_avg_demand')} ({forecast_horizon}h)</div>
+                        <div class="metric-value" style="color: #38BDF8;">{pred_avg_demand:,.0f} MW</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
             fig_fc = go.Figure()
 
             # Histórico reciente LMP
@@ -392,7 +478,7 @@ def render_bess_intelligence(current_lang: str, spp_df: pd.DataFrame, fuel_df: p
 
             fig_fc.update_layout(
                 template="plotly_dark",
-                height=500,
+                height=480,
                 margin=dict(l=20, r=20, t=30, b=20),
                 paper_bgcolor="#0B0E14",
                 plot_bgcolor="#131927",
@@ -402,6 +488,31 @@ def render_bess_intelligence(current_lang: str, spp_df: pd.DataFrame, fuel_df: p
             fig_fc.update_yaxes(title_text="Price LMP ($/MWh)", gridcolor="#1E293B")
 
             st.plotly_chart(fig_fc, use_container_width=True)
+
+            # TABLA DE PREDICCIONES PASO A PASO (8h / 16h / 24h)
+            st.markdown("---")
+            st.markdown(f"#### {t('ml_table_header', horizon=forecast_horizon)}")
+            st.caption(t("ml_table_caption"))
+
+            display_fc = forecast_df.copy()
+            display_fc.rename(columns={
+                "Time": "Time (US/Central)",
+                "Pred_LMP": "Predicted LMP ($/MWh)",
+                "Pred_LMP_Lower": "Lower Band 95% ($/MWh)",
+                "Pred_LMP_Upper": "Upper Band 95% ($/MWh)",
+                "Pred_Demand": "Predicted Demand (MW)",
+                "Recommended_Action": "Dispatch Recommendation"
+            }, inplace=True)
+
+            st.dataframe(display_fc, use_container_width=True)
+
+            csv_fc = display_fc.to_csv(index=False).encode("utf-8")
+            st.download_button(
+                label=t("btn_export_ml_csv", horizon=forecast_horizon),
+                data=csv_fc,
+                file_name=f"ml_forecast_{forecast_horizon}h_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
+                mime="text/csv"
+            )
 
     with t3:
         st.subheader(t("tab_financial_summary"))
