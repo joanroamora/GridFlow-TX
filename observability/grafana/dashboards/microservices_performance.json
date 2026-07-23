@@ -102,7 +102,7 @@
       "gridPos": { "h": 10, "w": 24, "x": 0, "y": 14 },
       "id": 6,
       "title": "🔗 Distributed Waterfall Traces (Tempo OpenTelemetry Correlation)",
-      "type": "tempo-traces",
+      "type": "traces",
       "datasource": { "type": "tempo", "uid": "Tempo" },
       "targets": [
         {

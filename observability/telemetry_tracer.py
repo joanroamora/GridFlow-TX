@@ -15,9 +15,16 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.resources import Resource, SERVICE_NAME
 
-from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
+from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST, start_http_server
 
 logger = logging.getLogger("GridFlow-Observability")
+
+# Start Prometheus custom RED metrics HTTP server on port 8000
+try:
+    start_http_server(8000)
+    logger.info("Prometheus custom RED metrics HTTP server listening on port 8000")
+except Exception as _e:
+    logger.debug(f"Prometheus HTTP server port 8000 already initialized: {_e}")
 
 # 1. OPENTELEMETRY TRACER CONFIGURATION (NON-BLOCKING)
 resource = Resource(attributes={SERVICE_NAME: "gridflow-tx-platform"})

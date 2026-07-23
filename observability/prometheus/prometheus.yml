@@ -3,7 +3,11 @@ global:
   evaluation_interval: 15s
 
 scrape_configs:
-  - job_name: 'gridflow-app'
+  - job_name: 'gridflow-red-metrics'
+    static_configs:
+      - targets: ['app:8000']
+
+  - job_name: 'gridflow-app-streamlit'
     metrics_path: '/_stcore/metrics'
     static_configs:
       - targets: ['app:8501']

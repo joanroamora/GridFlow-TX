@@ -6,6 +6,7 @@ services:
     container_name: gridflow-dashboard
     ports:
       - "8501:8501"
+      - "8000:8000"
     restart: unless-stopped
     environment:
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4318
