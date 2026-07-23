@@ -52,7 +52,6 @@ st.markdown(
     }
 </style>
 """,
-    unsafe_allow_html_allow_script_attrs=True,
     unsafe_allow_html=True,
 )
 
