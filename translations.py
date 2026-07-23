@@ -1,0 +1,865 @@
+"""
+Módulo de Internacionalización (i18n) para GridFlow-TX Dashboard.
+Soporta 7 idiomas: Español, Inglés, Francés, Chino, Coreano del Sur, Italiano, Portugués.
+"""
+
+TRANSLATIONS = {
+    "es": {
+        "page_title": "⚡ GridFlow-TX | Telemetría ERCOT & Analítica BESS en Tiempo Real",
+        "page_subtitle": "Plataforma Integrada de Monitoreo de Almacenamiento Energético y Mercado Eléctrico Nodal de Texas",
+        "sidebar_config": "⚙️ Configuración & Parámetros",
+        "sidebar_lang": "🌐 Seleccionar Idioma",
+        "alert_threshold_label": "Umbral de Alerta LMP Houston ($/MWh)",
+        "alert_threshold_help": "Define el límite a partir del cual el sistema emite una alerta operacional de alta volatilidad de precio.",
+        "data_control_header": "🔄 Control de Datos",
+        "refresh_btn": "⚡ Actualizar Datos ERCOT",
+        "tech_specs_header": "📌 Ficha Técnica",
+        "tech_specs_body": """
+- **Mercado Nodal:** `HB_HOUSTON` (Hub Real-Time 15-Min)
+- **Almacenamiento (BESS):** Potencia Neta (+ MW Inyección / - MW Carga)
+- **Frecuencia:** Telemetría 5-Min (Fuel Mix) & 15-Min (LMP)
+- **Infraestructura:** AWS EC2 | Python 3.10+
+""",
+        "alert_high_title": "⚠️ ¡ALERTA DE VOLATILIDAD EN HOUSTON HUB!",
+        "alert_high_body": "El precio marginal de la electricidad (LMP) actual en <strong>HB_HOUSTON</strong> alcanzó <strong>${lmp:.2f} / MWh</strong>, superando el umbral de <strong>${threshold:.2f} / MWh</strong>.<br/><em>Recomendación BESS: Maximizar inyección de descarga a la red.</em>",
+        "alert_normal_title": "✅ ESTADO NOMINAL DE RED",
+        "alert_normal_body": "Precio LMP en <strong>HB_HOUSTON</strong> en <strong>${lmp:.2f} / MWh</strong> (Por debajo del umbral de alerta de ${threshold:.2f} / MWh).<br/><em>Recomendación BESS: Mantener ciclo de recarga programado o reserva giratoria.</em>",
+        "kpi_lmp": "Houston LMP ($/MWh)",
+        "kpi_bess": "BESS Baterías ({status})",
+        "kpi_max_lmp": "Precio Máximo Hoy",
+        "kpi_avg_lmp": "Precio Promedio Hoy",
+        "kpi_load": "Demanda Red ERCOT",
+        "bess_status_discharging": "Descargando (+)",
+        "bess_status_charging": "Cargando (-)",
+        "bess_status_neutral": "Neutro",
+        "nav_header": "🛠️ Selección de Vista de Análisis Gráfico",
+        "nav_caption": "Selecciona una vista para explorar la analítica del mercado y comportamiento del almacenamiento:",
+        "views": {
+            "v1": "📈 Telemetría Dual (LMP vs BESS)",
+            "v2": "📊 Volatilidad de Precios (LMP)",
+            "v3": "🎯 Matriz de Arbitraje (Scatter)",
+            "v4": "⚡ Mezcla de Generación (Fuel Mix)",
+            "v5": "📉 Demanda del Sistema (Load)"
+        },
+        "time_control_header": "⏱️ Objeto de Control Temporal Dinámico",
+        "time_preset_label": "Ventana de Tiempo Predefinida:",
+        "time_presets": {
+            "all": "🌐 Día Completo (24h)",
+            "3h": "⏱️ Últimas 3 Horas",
+            "6h": "⏱️ Últimas 6 Horas",
+            "12h": "⏱️ Últimas 12 Horas",
+            "custom": "🛠️ Rango Personalizado"
+        },
+        "time_range_slider": "Rango Horario Dinámico (Inicio - Fin):",
+        "resample_label": "Agregación / Frecuencia Temporal:",
+        "resample_options": {
+            "raw": "Nativa (5m / 15m)",
+            "15m": "Promedio 15 Minutos",
+            "30m": "Promedio 30 Minutos",
+            "1h": "Promedio 1 Hora"
+        },
+        "chart_style_label": "Estilo Visual de BESS:",
+        "chart_style_fill": "Área Sombreada (Fill)",
+        "chart_style_line": "Línea Continua",
+        "view1_title": "📈 Telemetría Comparativa en Tiempo Real: Precios Houston LMP vs Flujo BESS",
+        "view1_explanation_title": "💡 ¿Cómo interpretar este gráfico? (Telemetría Dual)",
+        "view1_explanation_body": """
+<ul>
+    <li><strong>Eje Izquierdo (Rojo - $/MWh):</strong> Muestra el <em>Locational Marginal Price (LMP)</em> en el hub eléctrico de Houston. Representa el costo marginal instantáneo de generar 1 MWh adicional.</li>
+    <li><strong>Eje Derecho (Verde - MW):</strong> Indica el flujo neto de potencia del sistema BESS en ERCOT.
+        <ul>
+            <li><strong>Valores Positivos (+MW):</strong> Modo <strong>Descarga/Inyección</strong>, vendiendo electricidad a la red en picos de demanda.</li>
+            <li><strong>Valores Negativos (-MW):</strong> Modo <strong>Carga/Almacenamiento</strong>, comprando energía a bajo costo.</li>
+        </ul>
+    </li>
+    <li><strong>Arbitraje Ideal:</strong> Al subir el precio LMP (superando los <strong>${threshold:.2f}/MWh</strong>), el área verde reacciona positivamente (+MW) para rentabilizar el diferencial.</li>
+</ul>
+""",
+        "view2_title": "📊 Análisis de Volatilidad, Tendencias y Distribución de Precios (LMP)",
+        "view2_trend_title": "📈 Tendencia y Promedios Móviles (1h / 3h SMA)",
+        "view2_hist_title": "📊 Histograma de Frecuencia de Precios ($/MWh)",
+        "view2_explanation_title": "💡 ¿Por qué es fundamental medir la Volatilidad de Precios?",
+        "view2_explanation_body": """
+El mercado eléctrico de ERCOT funciona mediante ofertas de costo marginal en tiempo real cada 15 minutos.
+<ul>
+    <li><strong>Promedios Móviles (SMA 1h / 3h):</strong> Filtran el ruido instantáneo para revelar la inercia del mercado. Si la curva de 1 hora cruza por encima de la de 3 horas, el mercado está entrando en una fase ascendente de estrés de oferta.</li>
+    <li><strong>Percentil P90 (Extremo Superior):</strong> Representa el umbral de precio donde se ubica el 10% de las tarifas más elevadas del día (actualmente en <strong>${p90:.2f}/MWh</strong>). Los operadores buscan descargar sus baterías durante estos intervalos P90.</li>
+</ul>
+""",
+        "view3_title": "🎯 Matriz de Arbitraje Operativo: Correlación entre Precio y Potencia BESS",
+        "view3_explanation_title": "💡 ¿Cómo evaluar el desempeño del Arbitraje de Almacenamiento?",
+        "view3_explanation_body": """
+En esta matriz cada punto representa un intervalo de 15 minutos en el mercado:
+<ul>
+    <li><strong>Cuadrante Superior Derecho (Precios Altos + Descarga MW > 0):</strong> <em>Zona de Alta Rentabilidad</em>. Las baterías inyectan energía cuando los precios son elevados.</li>
+    <li><strong>Cuadrante Inferior Izquierdo (Precios Bajos + Carga MW < 0):</strong> <em>Zona de Recarga Eficiente</em>. Los activos absorben excedentes de la red a bajo costo.</li>
+    <li><strong>Eficiencia Operativa:</strong> Un sistema optimizado debe mostrar una clara correlación positiva diagonal (a mayor precio, mayor potencia inyectada).</li>
+</ul>
+""",
+        "view4_title": "⚡ Mezcla de Generación Energética de ERCOT (Generation Fuel Mix)",
+        "view4_stack_title": "🌋 Evolución de la Generación por Fuente (MW)",
+        "view4_pie_title": "🍰 Participación Actual de la Matriz (%)",
+        "view4_explanation_title": "💡 El Rol del Almacenamiento en la Matriz Térmica y Renovable",
+        "view4_explanation_body": """
+Texas cuenta con una de las redes más dinámicas del mundo debido a su alta penetración de energía Renovable (Eólica y Solar) combinada con Térmica (Gas Natural y Carbón):
+<ul>
+    <li><strong>Generación Intermitente (Solar/Viento):</strong> La energía solar cae drásticamente durante el atardecer (efecto curva de pato), mientras que el viento varía según el frente meteorológico.</li>
+    <li><strong>Rampas de Despacho Térmico:</strong> Cuando las renovables caen, las plantas de Gas Natural deben entrar a cubrir la brecha.</li>
+    <li><strong>Función Crucial de BESS:</strong> Las baterías de ion de litio reaccionan en milisegundos, cubriendo la brecha crítica mientras entran las unidades térmicas pesadas.</li>
+</ul>
+""",
+        "view5_title": "📉 Curva de Demanda Total de la Red de Texas (System Load MW)",
+        "view5_explanation_title": "💡 Impacto de la Demanda de la Red en los Precios Nodales",
+        "view5_explanation_body": """
+La demanda total de ERCOT refleja el consumo acumulado industrial, comercial y residencial del estado de Texas:
+<ul>
+    <li><strong>Pico de Carga ({max_load:,.0f} MW):</strong> Coincide habitualmente con las horas de mayor temperatura o picos industriales de la tarde. Durante estos picos, las plantas peaker fijan el precio LMP.</li>
+    <li><strong>Relación con Almacenamiento:</strong> Al predecir con exactitud el horario del pico de carga, los gestores de BESS aseguran contar con suficiente estado de carga (SOC) para descargar al 100%.</li>
+</ul>
+""",
+        "table_expander_title": "📋 Tabla de Datos Telemétricos y Opciones de Exportación",
+        "tab_lmp": "Precios Houston LMP",
+        "tab_bess": "Actividad BESS",
+        "tab_fuel": "Mezcla Energética Completa",
+        "download_lmp": "📥 Descargar CSV de Precios LMP",
+        "download_bess": "📥 Descargar CSV de Telemetría BESS",
+        "download_fuel": "📥 Descargar CSV de Mezcla Energética",
+        "fuel_names": {
+            "Natural Gas": "Gas Natural",
+            "Wind": "Eólica",
+            "Solar": "Solar",
+            "Coal and Lignite": "Carbón y Lignito",
+            "Nuclear": "Nuclear",
+            "Hydro": "Hidroeléctrica",
+            "Power Storage": "Almacenamiento (BESS)",
+            "Other": "Otros"
+        }
+    },
+
+    "en": {
+        "page_title": "⚡ GridFlow-TX | Real-Time ERCOT Telemetry & BESS Analytics",
+        "page_subtitle": "Integrated Monitoring Platform for Energy Storage and Texas Nodal Electricity Market",
+        "sidebar_config": "⚙️ Configuration & Parameters",
+        "sidebar_lang": "🌐 Select Language",
+        "alert_threshold_label": "Houston LMP Alert Threshold ($/MWh)",
+        "alert_threshold_help": "Sets the price limit above which the system issues an operational high volatility alert.",
+        "data_control_header": "🔄 Data Control",
+        "refresh_btn": "⚡ Refresh ERCOT Data",
+        "tech_specs_header": "📌 Technical Specs",
+        "tech_specs_body": """
+- **Nodal Market:** `HB_HOUSTON` (Hub Real-Time 15-Min)
+- **Storage (BESS):** Net Power (+ MW Injection / - MW Charge)
+- **Frequency:** 5-Min Telemetry (Fuel Mix) & 15-Min (LMP)
+- **Infrastructure:** AWS EC2 | Python 3.10+
+""",
+        "alert_high_title": "⚠️ HOUSTON HUB VOLATILITY ALERT!",
+        "alert_high_body": "Current electricity marginal price (LMP) at <strong>HB_HOUSTON</strong> reached <strong>${lmp:.2f} / MWh</strong>, exceeding threshold of <strong>${threshold:.2f} / MWh</strong>.<br/><em>BESS Recommendation: Maximize grid discharge injection.</em>",
+        "alert_normal_title": "✅ NOMINAL GRID STATUS",
+        "alert_normal_body": "LMP price at <strong>HB_HOUSTON</strong> at <strong>${lmp:.2f} / MWh</strong> (Below alert threshold of ${threshold:.2f} / MWh).<br/><em>BESS Recommendation: Maintain scheduled recharge cycle or spinning reserve.</em>",
+        "kpi_lmp": "Houston LMP ($/MWh)",
+        "kpi_bess": "BESS Storage ({status})",
+        "kpi_max_lmp": "Max Price Today",
+        "kpi_avg_lmp": "Avg Price Today",
+        "kpi_load": "ERCOT Grid Demand",
+        "bess_status_discharging": "Discharging (+)",
+        "bess_status_charging": "Charging (-)",
+        "bess_status_neutral": "Neutral",
+        "nav_header": "🛠️ View Selection & Chart Analytics",
+        "nav_caption": "Select a view to explore market analytics and storage behavior:",
+        "views": {
+            "v1": "📈 Dual Telemetry (LMP vs BESS)",
+            "v2": "📊 Price Volatility (LMP)",
+            "v3": "🎯 Arbitrage Matrix (Scatter)",
+            "v4": "⚡ Generation Fuel Mix",
+            "v5": "📉 System Demand (Load)"
+        },
+        "time_control_header": "⏱️ Dynamic Time Control Object",
+        "time_preset_label": "Predefined Time Window:",
+        "time_presets": {
+            "all": "🌐 Full Day (24h)",
+            "3h": "⏱️ Last 3 Hours",
+            "6h": "⏱️ Last 6 Hours",
+            "12h": "⏱️ Last 12 Hours",
+            "custom": "🛠️ Custom Range"
+        },
+        "time_range_slider": "Dynamic Time Range (Start - End):",
+        "resample_label": "Aggregation / Time Frequency:",
+        "resample_options": {
+            "raw": "Native (5m / 15m)",
+            "15m": "15 Minute Average",
+            "30m": "30 Minute Average",
+            "1h": "1 Hour Average"
+        },
+        "chart_style_label": "BESS Visual Style:",
+        "chart_style_fill": "Shaded Area (Fill)",
+        "chart_style_line": "Solid Line",
+        "view1_title": "📈 Real-Time Comparative Telemetry: Houston LMP Prices vs BESS Flow",
+        "view1_explanation_title": "💡 How to interpret this chart? (Dual Telemetry)",
+        "view1_explanation_body": """
+<ul>
+    <li><strong>Left Axis (Red - $/MWh):</strong> Displays the <em>Locational Marginal Price (LMP)</em> at Houston hub. Represents the instantaneous marginal cost to generate 1 additional MWh.</li>
+    <li><strong>Right Axis (Green - MW):</strong> Indicates net power flow of BESS across ERCOT.
+        <ul>
+            <li><strong>Positive Values (+MW):</strong> <strong>Discharge/Injection</strong> mode, selling electricity during peak demand.</li>
+            <li><strong>Negative Values (-MW):</strong> <strong>Charge/Storage</strong> mode, buying low-cost surplus power.</li>
+        </ul>
+    </li>
+    <li><strong>Ideal Arbitrage:</strong> When LMP price spikes (exceeding <strong>${threshold:.2f}/MWh</strong>), green area reacts positively (+MW) to capitalize on spreads.</li>
+</ul>
+""",
+        "view2_title": "📊 Volatility, Trend, and Price Distribution Analysis (LMP)",
+        "view2_trend_title": "📈 Trend & Moving Averages (1h / 3h SMA)",
+        "view2_hist_title": "📊 Price Frequency Histogram ($/MWh)",
+        "view2_explanation_title": "💡 Why is measuring Price Volatility essential?",
+        "view2_explanation_body": """
+The ERCOT power market operates via real-time 15-minute marginal cost bidding.
+<ul>
+    <li><strong>Moving Averages (SMA 1h / 3h):</strong> Filter noise to reveal market inertia. If 1h SMA crosses above 3h SMA, market is entering an upward supply stress phase.</li>
+    <li><strong>P90 Percentile (Upper Bound):</strong> Represents the price threshold for top 10% highest rates today (currently <strong>${p90:.2f}/MWh</strong>). Battery operators target discharge during P90 intervals.</li>
+</ul>
+""",
+        "view3_title": "🎯 Operational Arbitrage Matrix: Correlation between Price and BESS Power",
+        "view3_explanation_title": "💡 How to evaluate Storage Arbitrage Performance?",
+        "view3_explanation_body": """
+In this matrix each point represents a 15-minute market interval:
+<ul>
+    <li><strong>Top Right Quadrant (High Prices + Discharge MW > 0):</strong> <em>High Profitability Zone</em>. Batteries injecting power at premium prices.</li>
+    <li><strong>Bottom Left Quadrant (Low Prices + Charge MW < 0):</strong> <em>Efficient Recharge Zone</em>. Assets absorbing excess grid energy at low/negative cost.</li>
+    <li><strong>Operational Efficiency:</strong> An optimized system shows a clear positive diagonal correlation (higher price = higher power injected).</li>
+</ul>
+""",
+        "view4_title": "⚡ ERCOT Generation Fuel Mix",
+        "view4_stack_title": "🌋 Generation Evolution by Source (MW)",
+        "view4_pie_title": "🍰 Current Fuel Mix Share (%)",
+        "view4_explanation_title": "💡 The Role of Storage in Thermal & Renewable Mix",
+        "view4_explanation_body": """
+Texas has one of the world's most dynamic grids with high Renewable penetration (Wind & Solar) combined with Thermal (Natural Gas & Coal):
+<ul>
+    <li><strong>Intermittent Generation (Solar/Wind):</strong> Solar drops sharply at sunset (duck curve effect), while wind varies by weather fronts.</li>
+    <li><strong>Thermal Ramping:</strong> When renewables drop, Natural Gas plants ramp up to bridge the gap.</li>
+    <li><strong>Crucial BESS Role:</strong> Lithium-ion batteries react in milliseconds, bridging critical gaps while heavy thermal units spin up.</li>
+</ul>
+""",
+        "view5_title": "📉 Texas Grid System Total Demand Curve (System Load MW)",
+        "view5_explanation_title": "💡 Impact of Grid Demand on Nodal Prices",
+        "view5_explanation_body": """
+Total ERCOT demand reflects cumulative industrial, commercial, and residential consumption across Texas:
+<ul>
+    <li><strong>Peak Load ({max_load:,.0f} MW):</strong> Typically coincides with highest temperatures or afternoon industrial peaks. Peaker plants set LMP prices during these times.</li>
+    <li><strong>Storage Relation:</strong> By accurately predicting peak load timing, BESS operators ensure maximum State of Charge (SOC) is ready for 100% discharge during peak grid stress.</li>
+</ul>
+""",
+        "table_expander_title": "📋 Telemetry Data Table & Export Options",
+        "tab_lmp": "Houston LMP Prices",
+        "tab_bess": "BESS Activity",
+        "tab_fuel": "Full Generation Mix",
+        "download_lmp": "📥 Download LMP Prices CSV",
+        "download_bess": "📥 Download BESS Telemetry CSV",
+        "download_fuel": "📥 Download Generation Mix CSV",
+        "fuel_names": {
+            "Natural Gas": "Natural Gas",
+            "Wind": "Wind",
+            "Solar": "Solar",
+            "Coal and Lignite": "Coal & Lignite",
+            "Nuclear": "Nuclear",
+            "Hydro": "Hydroelectric",
+            "Power Storage": "Storage (BESS)",
+            "Other": "Other"
+        }
+    },
+
+    "fr": {
+        "page_title": "⚡ GridFlow-TX | Télémétrie ERCOT et Analyse BESS en Temps Réel",
+        "page_subtitle": "Plateforme Intégrée de Surveillance du Stockage d'Énergie et du Marché Électrique du Texas",
+        "sidebar_config": "⚙️ Configuration & Paramètres",
+        "sidebar_lang": "🌐 Choisir la Langue",
+        "alert_threshold_label": "Seuil d'Alerte LMP Houston ($/MWh)",
+        "alert_threshold_help": "Définit la limite de prix au-delà de laquelle une alerte de forte volatilité est émise.",
+        "data_control_header": "🔄 Contrôle des Données",
+        "refresh_btn": "⚡ Actualiser Données ERCOT",
+        "tech_specs_header": "📌 Spécifications Techniques",
+        "tech_specs_body": """
+- **Marché Nodal:** `HB_HOUSTON` (Hub Temps Réel 15-Min)
+- **Stockage (BESS):** Puissance Nette (+ MW Injection / - MW Charge)
+- **Fréquence:** Télémétrie 5-Min (Fuel Mix) & 15-Min (LMP)
+- **Infrastructure:** AWS EC2 | Python 3.10+
+""",
+        "alert_high_title": "⚠️ ALERTE DE VOLATILITÉ HOUSTON HUB!",
+        "alert_high_body": "Le prix marginal de l'électricité (LMP) à <strong>HB_HOUSTON</strong> a atteint <strong>${lmp:.2f} / MWh</strong>, dépassant le seuil de <strong>${threshold:.2f} / MWh</strong>.<br/><em>Recommandation BESS: Maximiser l'injection de décharge vers le réseau.</em>",
+        "alert_normal_title": "✅ ÉTAT NOMINAL DU RÉSEAU",
+        "alert_normal_body": "Prix LMP à <strong>HB_HOUSTON</strong> à <strong>${lmp:.2f} / MWh</strong> (Sous le seuil d'alerte de ${threshold:.2f} / MWh).<br/><em>Recommandation BESS: Maintenir le cycle de recharge programmé.</em>",
+        "kpi_lmp": "Houston LMP ($/MWh)",
+        "kpi_bess": "Batteries BESS ({status})",
+        "kpi_max_lmp": "Prix Max Aujourd'hui",
+        "kpi_avg_lmp": "Prix Moyen Aujourd'hui",
+        "kpi_load": "Demande Réseau ERCOT",
+        "bess_status_discharging": "Décharge (+)",
+        "bess_status_charging": "Charge (-)",
+        "bess_status_neutral": "Neutre",
+        "nav_header": "🛠️ Sélection de Vue Graphique",
+        "nav_caption": "Sélectionnez une vue pour explorer l'analyse du marché et du stockage:",
+        "views": {
+            "v1": "📈 Télémétrie Duale (LMP vs BESS)",
+            "v2": "📊 Volatilité des Prix (LMP)",
+            "v3": "🎯 Matrice d'Arbitrage (Scatter)",
+            "v4": "⚡ Mix de Génération (Fuel Mix)",
+            "v5": "📉 Demanda du Système (Load)"
+        },
+        "time_control_header": "⏱️ Objet de Contrôle Temporel Dynamique",
+        "time_preset_label": "Fenêtre Temporelle Prédéfinie:",
+        "time_presets": {
+            "all": "🌐 Journée Complète (24h)",
+            "3h": "⏱️ Dernières 3 Heures",
+            "6h": "⏱️ Dernières 6 Heures",
+            "12h": "⏱️ Dernières 12 Heures",
+            "custom": "🛠️ Plage Personnalisée"
+        },
+        "time_range_slider": "Plage Horaire Dynamique (Début - Fin):",
+        "resample_label": "Agrégation Temporelle:",
+        "resample_options": {
+            "raw": "Native (5m / 15m)",
+            "15m": "Moyenne 15 Minutes",
+            "30m": "Moyenne 30 Minutes",
+            "1h": "Moyenne 1 Heure"
+        },
+        "chart_style_label": "Style Visuel BESS:",
+        "chart_style_fill": "Zone Ombragée (Fill)",
+        "chart_style_line": "Ligne Continue",
+        "view1_title": "📈 Télémétrie Comparative en Temps Réel: Prix LMP vs Flux BESS",
+        "view1_explanation_title": "💡 Comment interpréter ce graphique? (Télémétrie Duale)",
+        "view1_explanation_body": """
+<ul>
+    <li><strong>Axe Gauche (Rouge - $/MWh):</strong> Prix marginal de localisation (LMP) au hub de Houston.</li>
+    <li><strong>Axe Droit (Vert - MW):</strong> Flux de puissance net du stockage BESS.
+        <ul>
+            <li><strong>Valeurs Positives (+MW):</strong> Injection/Décharge vers le réseau.</li>
+            <li><strong>Valeurs Négatives (-MW):</strong> Charge/Stockage d'énergie.</li>
+        </ul>
+    </li>
+    <li><strong>Arbitrage Idéal:</strong> En hausse de prix LMP, le BESS injecte l'énergie (+MW).</li>
+</ul>
+""",
+        "view2_title": "📊 Analyse de Volatilité, Tendances et Distribution (LMP)",
+        "view2_trend_title": "📈 Tendance et Moyennes Mobiles (1h / 3h SMA)",
+        "view2_hist_title": "📊 Histogramme de Fréquence des Prix ($/MWh)",
+        "view2_explanation_title": "💡 Pourquoi mesurer la volatilité des prix?",
+        "view2_explanation_body": """
+Le marché ERCOT fonctionne par enchères de coût marginal toutes les 15 minutes. Les moyennes mobiles et percentiles P90 permettent de cibler les créneaux optimaux de décharge.
+""",
+        "view3_title": "🎯 Matrice d'Arbitrage: Corrélation Prix et Puissance BESS",
+        "view3_explanation_title": "💡 Évaluation de la performance d'arbitrage",
+        "view3_explanation_body": """
+Chaque point représente un intervalle de 15 min. La corrélation diagonale positive indique une grande efficacité économique.
+""",
+        "view4_title": "⚡ Mix de Génération Énergétique ERCOT",
+        "view4_stack_title": "🌋 Évolution de la Génération par Source (MW)",
+        "view4_pie_title": "🍰 Part Actuelle du Mix (%)",
+        "view4_explanation_title": "💡 Rôle du BESS dans la transition thermique et renouvelable",
+        "view4_explanation_body": """
+Les batteries lithium-ion réagissent en millisecondes aux chutes d'énergie renouvelable pendant que les centrales thermiques démarrent.
+""",
+        "view5_title": "📉 Courbe de Demande Totale du Réseau (System Load MW)",
+        "view5_explanation_title": "💡 Impact de la demande sur les prix nodaux",
+        "view5_explanation_body": """
+Le suivi précis des pics de charge permet aux opérateurs BESS de maximiser l'état de charge (SOC) pour la décharge intégrale lors des pointes.
+""",
+        "table_expander_title": "📋 Tableau de Données et Exportation",
+        "tab_lmp": "Prix Houston LMP",
+        "tab_bess": "Activité BESS",
+        "tab_fuel": "Mix Énergétique Complet",
+        "download_lmp": "📥 Télécharger CSV Prix LMP",
+        "download_bess": "📥 Télécharger CSV BESS",
+        "download_fuel": "📥 Télécharger CSV Mix Énergétique",
+        "fuel_names": {
+            "Natural Gas": "Gaz Naturel",
+            "Wind": "Éolien",
+            "Solar": "Solaire",
+            "Coal and Lignite": "Charbon & Lignite",
+            "Nuclear": "Nucléaire",
+            "Hydro": "Hydroélectricité",
+            "Power Storage": "Stockage (BESS)",
+            "Other": "Autre"
+        }
+    },
+
+    "zh": {
+        "page_title": "⚡ GridFlow-TX | 德州ERCOT实时遥测与BESS储能分析平台",
+        "page_subtitle": "德克萨斯州节点电力市场与储能系统综合监控平台",
+        "sidebar_config": "⚙️ 设置与参数",
+        "sidebar_lang": "🌐 选择语言 / Language",
+        "alert_threshold_label": "休斯顿LMP警报阈值 ($/MWh)",
+        "alert_threshold_help": "设定价格阈值，超过该值系统将发出高价格波动警报。",
+        "data_control_header": "🔄 数据控制",
+        "refresh_btn": "⚡ 刷新ERCOT实时数据",
+        "tech_specs_header": "📌 技术规格",
+        "tech_specs_body": """
+- **节点市场:** `HB_HOUSTON` (休斯顿Hub实时15分钟)
+- **储能系统(BESS):** 净功率 (+MW 注入电网 / -MW 充电)
+- **采样频率:** 5分钟遥测 (发电结构) & 15分钟 (LMP电价)
+- **运行环境:** AWS EC2 | Python 3.10+
+""",
+        "alert_high_title": "⚠️ 休斯顿Hub价格高波动警报！",
+        "alert_high_body": "当前 <strong>HB_HOUSTON</strong> 实时边际电价 (LMP) 已达到 <strong>${lmp:.2f} / MWh</strong>，超过设定阈值 <strong>${threshold:.2f} / MWh</strong>。<br/><em>BESS建议：最大化放电注入电网。</em>",
+        "alert_normal_title": "✅ 电网运行正常",
+        "alert_normal_body": "当前 <strong>HB_HOUSTON</strong> 电价为 <strong>${lmp:.2f} / MWh</strong>（低于警报阈值 ${threshold:.2f} / MWh）。<br/><em>BESS建议：按计划充电或保持旋转备用。</em>",
+        "kpi_lmp": "休斯顿LMP电价 ($/MWh)",
+        "kpi_bess": "BESS电池储能 ({status})",
+        "kpi_max_lmp": "今日最高电价",
+        "kpi_avg_lmp": "今日平均电价",
+        "kpi_load": "ERCOT电网总负荷",
+        "bess_status_discharging": "放电 (+)",
+        "bess_status_charging": "充电 (-)",
+        "bess_status_neutral": "待机/中性",
+        "nav_header": "🛠️ 选择分析视图与图表模式",
+        "nav_caption": "选择视图以探索市场分析与储能运行状态：",
+        "views": {
+            "v1": "📈 双重遥测对比 (LMP vs BESS)",
+            "v2": "📊 价格波动分析 (LMP)",
+            "v3": "🎯 套利矩阵分析 (散点图)",
+            "v4": "⚡ 发电能源结构 (Fuel Mix)",
+            "v5": "📉 电网总负荷需求 (Load)"
+        },
+        "time_control_header": "⏱️ 动态时间控制对象与时间窗口",
+        "time_preset_label": "预设时间窗口：",
+        "time_presets": {
+            "all": "🌐 全天记录 (24小时)",
+            "3h": "⏱️ 最近 3 小时",
+            "6h": "⏱️ 最近 6 小时",
+            "12h": "⏱️ 最近 12 小时",
+            "custom": "🛠️ 自定义时间范围"
+        },
+        "time_range_slider": "动态时间选择 (开始 - 结束)：",
+        "resample_label": "数据聚合 / 采样频率：",
+        "resample_options": {
+            "raw": "原始频率 (5m / 15m)",
+            "15m": "15分钟平均值",
+            "30m": "30分钟平均值",
+            "1h": "1小时平均值"
+        },
+        "chart_style_label": "BESS显示样式：",
+        "chart_style_fill": "阴影填充 (Fill)",
+        "chart_style_line": "连续折线",
+        "view1_title": "📈 实时对比遥测：休斯顿LMP电价与BESS功率流",
+        "view1_explanation_title": "💡 如何解读此图表？(双重遥测)",
+        "view1_explanation_body": """
+<ul>
+    <li><strong>左轴 (红色 - $/MWh):</strong> 休斯顿电网Hub节点边际电价 (LMP)。</li>
+    <li><strong>右轴 (绿色 - MW):</strong> ERCOT全网BESS储能净功率。
+        <ul>
+            <li><strong>正值 (+MW):</strong> 放电模式，高价期向电网输送电力。</li>
+            <li><strong>负值 (-MW):</strong> 充电模式，低价期吸收过剩电能。</li>
+        </ul>
+    </li>
+    <li><strong>最佳套利：</strong> 电价飙升时，绿色区域呈现正值(+MW)以获取利差效益。</li>
+</ul>
+""",
+        "view2_title": "📊 电价波动性、趋势与分布分析 (LMP)",
+        "view2_trend_title": "📈 移动平均线与趋势 (1h / 3h SMA)",
+        "view2_hist_title": "📊 价格频率直方图 ($/MWh)",
+        "view2_explanation_title": "💡 为什么分析价格波动至关重要？",
+        "view2_explanation_body": """
+ERCOT电力市场每15分钟结算一次。通过P90高价位点与移动平均线，储能运营商可精准捕捉最佳放电窗口。
+""",
+        "view3_title": "🎯 储能套利矩阵：电价与BESS功率相关性分析",
+        "view3_explanation_title": "💡 评估储能套利绩效",
+        "view3_explanation_body": """
+右上方象限代表高价放电盈利区，左下方象限代表低价充电储备区。点阵呈正相关斜线表示系统调度高度优化。
+""",
+        "view4_title": "⚡ 德州ERCOT发电能源结构 (Fuel Mix)",
+        "view4_stack_title": "🌋 各能源发电量演变 (MW)",
+        "view4_pie_title": "🍰 当前发电结构占比 (%)",
+        "view4_explanation_title": "💡 储能在可再生能源与火电中的核心作用",
+        "view4_explanation_body": """
+风电与光伏具有随机波动性，锂电池BESS具备毫秒级响应能力，在火力发电机组启动前快速填补供电缺口。
+""",
+        "view5_title": "📉 德州电网总负荷需求曲线 (System Load MW)",
+        "view5_explanation_title": "💡 电网负荷对节点电价的影响",
+        "view5_explanation_body": """
+预测负荷高峰可协助BESS提前充满电量(SOC)，在负荷最高峰期进行100%满功率放电。
+""",
+        "table_expander_title": "📋 遥测数据明细表与数据导出",
+        "tab_lmp": "休斯顿LMP电价",
+        "tab_bess": "BESS运行状态",
+        "tab_fuel": "全网发电结构数据",
+        "download_lmp": "📥 下载LMP电价CSV",
+        "download_bess": "📥 下载BESS遥测CSV",
+        "download_fuel": "📥 下载能源结构CSV",
+        "fuel_names": {
+            "Natural Gas": "天然气",
+            "Wind": "风力发电",
+            "Solar": "光伏太阳能",
+            "Coal and Lignite": "煤电",
+            "Nuclear": "核能",
+            "Hydro": "水力发电",
+            "Power Storage": "储能系统(BESS)",
+            "Other": "其他"
+        }
+    },
+
+    "ko": {
+        "page_title": "⚡ GridFlow-TX | 실시간 ERCOT 텔레메트리 및 BESS 분석 플랫폼",
+        "page_subtitle": "텍사스 전력 시장 및 에너지 저장 시스템(BESS) 통합 실시간 모니터링",
+        "sidebar_config": "⚙️ 설정 및 파라미터",
+        "sidebar_lang": "🌐 언어 선택 / Language",
+        "alert_threshold_label": "휴스턴 LMP 경보 임계값 ($/MWh)",
+        "alert_threshold_help": "고변동성 가격 경보가 발생할 기준 가격을 설정합니다.",
+        "data_control_header": "🔄 데이터 제어",
+        "refresh_btn": "⚡ ERCOT 데이터 새로고침",
+        "tech_specs_header": "📌 기술 사양",
+        "tech_specs_body": """
+- **노달 시장:** `HB_HOUSTON` (휴스턴 Hub 실시간 15분)
+- **BESS 저장장치:** 순 출력 (+MW 방전 / -MW 충전)
+- **데이터 주기:** 5분 텔레메트리 (발전 믹스) & 15분 (LMP)
+- **인프라:** AWS EC2 | Python 3.10+
+""",
+        "alert_high_title": "⚠️ 휴스턴 Hub 가격 변동성 경보!",
+        "alert_high_body": "현재 <strong>HB_HOUSTON</strong> 한계 전력 가격(LMP)이 <strong>${lmp:.2f} / MWh</strong>에 도달하여 임계값 <strong>${threshold:.2f} / MWh</strong>을 초과했습니다.<br/><em>BESS 권장사항: 전력망 방전 출력 극대화.</em>",
+        "alert_normal_title": "✅ 전력망 정상 상태",
+        "alert_normal_body": "현재 <strong>HB_HOUSTON</strong> LMP 가격: <strong>${lmp:.2f} / MWh</strong> (경보 임계값 ${threshold:.2f} / MWh 미만).<br/><em>BESS 권장사항: 충전 사이클 또는 예비력 유지.</em>",
+        "kpi_lmp": "휴스턴 LMP ($/MWh)",
+        "kpi_bess": "BESS 배터리 ({status})",
+        "kpi_max_lmp": "오늘 최고가",
+        "kpi_avg_lmp": "오늘 평균가",
+        "kpi_load": "ERCOT 전력 수요",
+        "bess_status_discharging": "방전 중 (+)",
+        "bess_status_charging": "충전 중 (-)",
+        "bess_status_neutral": "대기/중립",
+        "nav_header": "🛠️ 그래프 모드 및 분석 선택",
+        "nav_caption": "시장 분석 및 저장장치 동작을 확인할 뷰를 선택하세요:",
+        "views": {
+            "v1": "📈 듀얼 텔레메트리 (LMP vs BESS)",
+            "v2": "📊 가격 변동성 분석 (LMP)",
+            "v3": "🎯 차익거래 매트릭스 (산점도)",
+            "v4": "⚡ 발전 믹스 (Fuel Mix)",
+            "v5": "📉 전력망 수요 (Load)"
+        },
+        "time_control_header": "⏱️ 동적 시간 제어 객체 및 차트 범위",
+        "time_preset_label": "사전 정의된 시간 창:",
+        "time_presets": {
+            "all": "🌐 전체 기록 (24시간)",
+            "3h": "⏱️ 최근 3시간",
+            "6h": "⏱️ 최근 6시간",
+            "12h": "⏱️ 최근 12시간",
+            "custom": "🛠️ 사용자 지정 범위"
+        },
+        "time_range_slider": "동적 시간 범위 (시작 - 종료):",
+        "resample_label": "시간 데이터 집계 주기:",
+        "resample_options": {
+            "raw": "원본 주기 (5분 / 15분)",
+            "15m": "15분 평균",
+            "30m": "30분 평균",
+            "1h": "1시간 평균"
+        },
+        "chart_style_label": "BESS 시각화 스타일:",
+        "chart_style_fill": "영역 채우기 (Fill)",
+        "chart_style_line": "실선 그래프",
+        "view1_title": "📈 실시간 비교 텔레메트리: 휴스턴 LMP 가격 vs BESS 전력 흐름",
+        "view1_explanation_title": "💡 그래프 해석 방법 (듀얼 텔레메트리)",
+        "view1_explanation_body": """
+<ul>
+    <li><strong>좌측 축 (빨간색 - $/MWh):</strong> 휴스턴 Hub 한계 가격 (LMP).</li>
+    <li><strong>우측 축 (초록색 - MW):</strong> ERCOT BESS 순 출력.
+        <ul>
+            <li><strong>양수 (+MW):</strong> 피크 시간대 전력망 <strong>방전/판매</strong>.</li>
+            <li><strong>음수 (-MW):</strong> 저렴한 잔여 전력 <strong>충전/저장</strong>.</li>
+        </ul>
+    </li>
+</ul>
+""",
+        "view2_title": "📊 가격 변동성, 추세 및 분포 분석 (LMP)",
+        "view2_trend_title": "📈 추세 및 이동 평균 (1h / 3h SMA)",
+        "view2_hist_title": "📊 가격 빈도 히스토그램 ($/MWh)",
+        "view2_explanation_title": "💡 가격 변동성 측정의 중요성",
+        "view2_explanation_body": """
+P90 상위 10% 가격 구간과 이동 평균선을 통해 BESS의 최적 방전 타임슬롯을 포착합니다.
+""",
+        "view3_title": "🎯 차익거래 매트릭스: 가격과 BESS 출력의 상관관계",
+        "view3_explanation_title": "💡 BESS 차익거래 성과 평가",
+        "view3_explanation_body": """
+우상단 영역은 고가격 방전 수익 구간이며, 좌하단 영역은 저가격 효율적 충전 구간입니다.
+""",
+        "view4_title": "⚡ ERCOT 발전 믹스 (Fuel Mix)",
+        "view4_stack_title": "🌋 에너지원별 발전 추이 (MW)",
+        "view4_pie_title": "🍰 현재 발전 비중 (%)",
+        "view4_explanation_title": "💡 재생에너지 및 화력발전 속 BESS의 역할",
+        "view4_explanation_body": """
+리튬이온 배터리는 화력발전소 기동 전 수밀리초 내에 전력망 공백을 메웁니다.
+""",
+        "view5_title": "📉 텍사스 전력망 총 수요 곡선 (System Load MW)",
+        "view5_explanation_title": "💡 전력 수요가 노달 가격에 미치는 영향",
+        "view5_explanation_body": """
+피크 수요를 정확히 예측하여 BESS 충전 상태(SOC)를 최대로 유지합니다.
+""",
+        "table_expander_title": "📋 텔레메트리 데이터 테이블 및 내보내기",
+        "tab_lmp": "휴스턴 LMP 가격",
+        "tab_bess": "BESS 작동 기록",
+        "tab_fuel": "전체 발전 믹스 데이터",
+        "download_lmp": "📥 LMP 가격 CSV 다운로드",
+        "download_bess": "📥 BESS 텔레메트리 CSV 다운로드",
+        "download_fuel": "📥 발전 믹스 CSV 다운로드",
+        "fuel_names": {
+            "Natural Gas": "천연가스",
+            "Wind": "풍력",
+            "Solar": "태양광",
+            "Coal and Lignite": "석탄 및 갈탄",
+            "Nuclear": "원자력",
+            "Hydro": "수력",
+            "Power Storage": "BESS 배터리",
+            "Other": "기타"
+        }
+    },
+
+    "it": {
+        "page_title": "⚡ GridFlow-TX | Telemetria ERCOT in Tempo Reale & Analitica BESS",
+        "page_subtitle": "Piattaforma Integrata di Monitoraggio per l'Accumulo Energetico e il Mercato Elettrico del Texas",
+        "sidebar_config": "⚙️ Configurazione & Parametri",
+        "sidebar_lang": "🌐 Seleziona Lingua / Language",
+        "alert_threshold_label": "Soglia di Allerta LMP Houston ($/MWh)",
+        "alert_threshold_help": "Imposta il limite oltre il quale il sistema genera un'allerta di alta volatilità.",
+        "data_control_header": "🔄 Controllo Dati",
+        "refresh_btn": "⚡ Aggiorna Dati ERCOT",
+        "tech_specs_header": "📌 Specifiche Tecniche",
+        "tech_specs_body": """
+- **Mercato Nodale:** `HB_HOUSTON` (Hub Tempo Reale 15-Min)
+- **Accumulo (BESS):** Potenza Netta (+ MW Iniezione / - MW Carica)
+- **Frequenza:** Telemetria 5-Min (Fuel Mix) & 15-Min (LMP)
+- **Infrastruttura:** AWS EC2 | Python 3.10+
+""",
+        "alert_high_title": "⚠️ ALLERTA VOLATILITÀ HOUSTON HUB!",
+        "alert_high_body": "Il prezzo marginale (LMP) a <strong>HB_HOUSTON</strong> ha raggiunto <strong>${lmp:.2f} / MWh</strong>, superando la soglia di <strong>${threshold:.2f} / MWh</strong>.<br/><em>Raccomandazione BESS: Massimizzare l'iniezione di scarica nella rete.</em>",
+        "alert_normal_title": "✅ STATO NOMINALE DELLA RETE",
+        "alert_normal_body": "Prezzo LMP a <strong>HB_HOUSTON</strong> pari a <strong>${lmp:.2f} / MWh</strong> (Sotto la soglia di allerta di ${threshold:.2f} / MWh).<br/><em>Raccomandazione BESS: Mantenere il ciclo di ricarica programmato.</em>",
+        "kpi_lmp": "Houston LMP ($/MWh)",
+        "kpi_bess": "Batterie BESS ({status})",
+        "kpi_max_lmp": "Prezzo Max Oggi",
+        "kpi_avg_lmp": "Prezzo Medio Oggi",
+        "kpi_load": "Domanda Rete ERCOT",
+        "bess_status_discharging": "Scarica (+)",
+        "bess_status_charging": "Carica (-)",
+        "bess_status_neutral": "Neutro",
+        "nav_header": "🛠️ Selezione Vista Grafica",
+        "nav_caption": "Seleziona una vista per esplorare l'analisi del mercato e il comportamento dell'accumulo:",
+        "views": {
+            "v1": "📈 Telemetria Doppia (LMP vs BESS)",
+            "v2": "📊 Volatilità dei Prezzi (LMP)",
+            "v3": "🎯 Matrice di Arbitraggio (Scatter)",
+            "v4": "⚡ Mix di Generazione (Fuel Mix)",
+            "v5": "📉 Domanda del Sistema (Load)"
+        },
+        "time_control_header": "⏱️ Oggetto di Controllo Temporale Dinamico",
+        "time_preset_label": "Finestra Temporale Predefinita:",
+        "time_presets": {
+            "all": "🌐 Giornata Completa (24h)",
+            "3h": "⏱️ Ultime 3 Ore",
+            "6h": "⏱️ Ultime 6 Ore",
+            "12h": "⏱️ Ultime 12 Ore",
+            "custom": "🛠️ Intervallo Personalizzato"
+        },
+        "time_range_slider": "Intervallo Orario Dinamico (Inizio - Fine):",
+        "resample_label": "Aggregazione Temporale:",
+        "resample_options": {
+            "raw": "Nativa (5m / 15m)",
+            "15m": "Media 15 Minuti",
+            "30m": "Media 30 Minuti",
+            "1h": "Media 1 Ora"
+        },
+        "chart_style_label": "Stile Visuale BESS:",
+        "chart_style_fill": "Area Ombreggiata (Fill)",
+        "chart_style_line": "Linea Continua",
+        "view1_title": "📈 Telemetria Comparativa in Tempo Reale: Prezzi Houston LMP vs Flusso BESS",
+        "view1_explanation_title": "💡 Come interpretare questo grafico? (Telemetria Doppia)",
+        "view1_explanation_body": """
+<ul>
+    <li><strong>Asse Sinistro (Rosso - $/MWh):</strong> Prezzo marginale (LMP) al hub di Houston.</li>
+    <li><strong>Asse Destro (Verde - MW):</strong> Flusso netto di potenza delle batterie BESS.
+        <ul>
+            <li><strong>Valori Positivi (+MW):</strong> Iniezione/Scarica verso la rete.</li>
+            <li><strong>Valori Negativi (-MW):</strong> Carica/Accumulo di energia surplus.</li>
+        </ul>
+    </li>
+</ul>
+""",
+        "view2_title": "📊 Analisi di Volatilità, Tendenze e Distribuzione dei Prezzi (LMP)",
+        "view2_trend_title": "📈 Tendenza e Medie Mobili (1h / 3h SMA)",
+        "view2_hist_title": "📊 Istogramma di Frequenza dei Prezzi ($/MWh)",
+        "view2_explanation_title": "💡 Importanza della misurazione della volatilità",
+        "view2_explanation_body": """
+Il mercato ERCOT opera su intervalli di 15 minuti. Le medie mobili e i percentili P90 identificano le finestre ottimali di scarica.
+""",
+        "view3_title": "🎯 Matrice di Arbitraggio: Correlazione Prezzo e Potenza BESS",
+        "view3_explanation_title": "💡 Valutazione delle prestazioni di arbitraggio",
+        "view3_explanation_body": """
+Il quadrante in alto a destra rappresenta l'iniezione ad alto prezzo; in basso a sinistra la carica a basso costo.
+""",
+        "view4_title": "⚡ Mix di Generazione Energetica ERCOT",
+        "view4_stack_title": "🌋 Evoluzione della Generazione per Fonte (MW)",
+        "view4_pie_title": "🍰 Quota Attuale del Mix (%)",
+        "view4_explanation_title": "💡 Ruolo di BESS nel mix termico e rinnovabile",
+        "view4_explanation_body": """
+Le batterie al litio rispondono in millisecondi ai cali di energia rinnovabile durante l'avvio degli impianti termici.
+""",
+        "view5_title": "📉 Curva di Domanda Totale della Rete del Texas (System Load MW)",
+        "view5_explanation_title": "💡 Impatto della domanda sui prezzi nodali",
+        "view5_explanation_body": """
+La previsione dei picchi consente agli operatori BESS di preparare il 100% dello stato di carica (SOC).
+""",
+        "table_expander_title": "📋 Tabella Dati e Opzioni di Esportazione",
+        "tab_lmp": "Prezzi Houston LMP",
+        "tab_bess": "Attività BESS",
+        "tab_fuel": "Mix Energetico Completo",
+        "download_lmp": "📥 Scarica CSV Prezzi LMP",
+        "download_bess": "📥 Scarica CSV BESS",
+        "download_fuel": "📥 Scarica CSV Mix Energetico",
+        "fuel_names": {
+            "Natural Gas": "Gas Naturale",
+            "Wind": "Eolico",
+            "Solar": "Solare",
+            "Coal and Lignite": "Carbone & Lignite",
+            "Nuclear": "Nucleare",
+            "Hydro": "Idroelettrico",
+            "Power Storage": "Accumulo (BESS)",
+            "Other": "Altro"
+        }
+    },
+
+    "pt": {
+        "page_title": "⚡ GridFlow-TX | Telemetria ERCOT em Tempo Real & Analítica BESS",
+        "page_subtitle": "Plataforma Integrada de Monitoramento de Armazenamento de Energia e Mercado Elétrico do Texas",
+        "sidebar_config": "⚙️ Configuração & Parâmetros",
+        "sidebar_lang": "🌐 Selecionar Idioma / Language",
+        "alert_threshold_label": "Limite de Alerta LMP Houston ($/MWh)",
+        "alert_threshold_help": "Define o preço limite a partir do qual o sistema emite um alerta de alta volatilidade.",
+        "data_control_header": "🔄 Controle de Dados",
+        "refresh_btn": "⚡ Atualizar Dados ERCOT",
+        "tech_specs_header": "📌 Especificações Técnicas",
+        "tech_specs_body": """
+- **Mercado Nodal:** `HB_HOUSTON` (Hub Tempo Real 15-Min)
+- **Armazenamento (BESS):** Potência Líquida (+ MW Injeção / - MW Carga)
+- **Frequência:** Telemetria 5-Min (Fuel Mix) & 15-Min (LMP)
+- **Infraestrutura:** AWS EC2 | Python 3.10+
+""",
+        "alert_high_title": "⚠️ ALERTA DE VOLATILIDADE NO HOUSTON HUB!",
+        "alert_high_body": "O preço marginal da eletricidade (LMP) em <strong>HB_HOUSTON</strong> atingiu <strong>${lmp:.2f} / MWh</strong>, superando o limite de <strong>${threshold:.2f} / MWh</strong>.<br/><em>Recomendação BESS: Maximizar injeção de descarga na rede.</em>",
+        "alert_normal_title": "✅ ESTADO NOMINAL DA REDE",
+        "alert_normal_body": "Preço LMP em <strong>HB_HOUSTON</strong> em <strong>${lmp:.2f} / MWh</strong> (Abaixo do limite de alerta de ${threshold:.2f} / MWh).<br/><em>Recomendação BESS: Manter ciclo de recarga programado.</em>",
+        "kpi_lmp": "Houston LMP ($/MWh)",
+        "kpi_bess": "Baterias BESS ({status})",
+        "kpi_max_lmp": "Preço Máx Hoje",
+        "kpi_avg_lmp": "Preço Médio Hoje",
+        "kpi_load": "Demanda Rede ERCOT",
+        "bess_status_discharging": "Descregando (+)",
+        "bess_status_charging": "Carregando (-)",
+        "bess_status_neutral": "Neutro",
+        "nav_header": "🛠️ Seleção de Vista Gráfica",
+        "nav_caption": "Selecione uma vista para explorar a analítica de mercado e comportamento do armazenamento:",
+        "views": {
+            "v1": "📈 Telemetria Dupla (LMP vs BESS)",
+            "v2": "📊 Volatilidade de Preços (LMP)",
+            "v3": "🎯 Matriz de Arbitragem (Scatter)",
+            "v4": "⚡ Mix de Geração (Fuel Mix)",
+            "v5": "📉 Demanda do Sistema (Load)"
+        },
+        "time_control_header": "⏱️ Objeto de Controle Temporal Dinâmico",
+        "time_preset_label": "Janela de Tempo Predefinida:",
+        "time_presets": {
+            "all": "🌐 Dia Inteiro (24h)",
+            "3h": "⏱️ Últimas 3 Horas",
+            "6h": "⏱️ Últimas 6 Horas",
+            "12h": "⏱️ Últimas 12 Horas",
+            "custom": "🛠️ Intervalo Personalizado"
+        },
+        "time_range_slider": "Intervalo Horário Dinâmico (Início - Fim):",
+        "resample_label": "Agregação Temporativa:",
+        "resample_options": {
+            "raw": "Nativa (5m / 15m)",
+            "15m": "Média 15 Minutos",
+            "30m": "Média 30 Minutos",
+            "1h": "Média 1 Hora"
+        },
+        "chart_style_label": "Estilo Visual BESS:",
+        "chart_style_fill": "Área Sombreada (Fill)",
+        "chart_style_line": "Linha Contínua",
+        "view1_title": "📈 Telemetria Comparativa em Tempo Real: Preços Houston LMP vs Fluxo BESS",
+        "view1_explanation_title": "💡 Como interpretar este gráfico? (Telemetria Dupla)",
+        "view1_explanation_body": """
+<ul>
+    <li><strong>Eixo Esquerdo (Vermelho - $/MWh):</strong> Preço marginal nodal (LMP) no hub de Houston.</li>
+    <li><strong>Eixo Direito (Verde - MW):</strong> Fluxo líquido de potência do sistema BESS.
+        <ul>
+            <li><strong>Valores Positivos (+MW):</strong> Modo <strong>Descarga/Injeção</strong> na rede.</li>
+            <li><strong>Valores Negativos (-MW):</strong> Modo <strong>Carga/Armazenamento</strong> de excedentes.</li>
+        </ul>
+    </li>
+</ul>
+""",
+        "view2_title": "📊 Análise de Volatilidade, Tendências e Distribuição de Preços (LMP)",
+        "view2_trend_title": "📈 Tendência e Médias Móveis (1h / 3h SMA)",
+        "view2_hist_title": "📊 Histograma de Frequência de Preços ($/MWh)",
+        "view2_explanation_title": "💡 Por que medir a Volatilidade de Preços?",
+        "view2_explanation_body": """
+O mercado ERCOT opera com lances de 15 minutos. As médias móveis e o percentil P90 ajudam a identificar as melhores janelas de descarga das baterias.
+""",
+        "view3_title": "🎯 Matriz de Arbitragem: Correlação Preço e Potência BESS",
+        "view3_explanation_title": "💡 Avaliação do Desempenho de Arbitragem",
+        "view3_explanation_body": """
+Quadrante superior direito representa injeção a preços altos; inferior esquerdo a recarga a baixo custo.
+""",
+        "view4_title": "⚡ Mix de Geração Energética de ERCOT",
+        "view4_stack_title": "🌋 Evolução da Geração por Fonte (MW)",
+        "view4_pie_title": "🍰 Participação Atual do Mix (%)",
+        "view4_explanation_title": "💡 O Papel do BESS no Mix Térmico e Renovável",
+        "view4_explanation_body": """
+Baterias de íon de lítio reagem em milissegundos a quedas de energia renovável durante a partida de usinas térmicas.
+""",
+        "view5_title": "📉 Curva de Demanda Total da Rede do Texas (System Load MW)",
+        "view5_explanation_title": "💡 Impacto da Demanda nos Preços Nodais",
+        "view5_explanation_body": """
+Prever o pico de demanda permite que os operadores de BESS mantenham o estado de carga (SOC) pronto para descarga em 100%.
+""",
+        "table_expander_title": "📋 Tabela de Dados e Opções de Exportação",
+        "tab_lmp": "Preços Houston LMP",
+        "tab_bess": "Atividade BESS",
+        "tab_fuel": "Mix Energético Completo",
+        "download_lmp": "📥 Baixar CSV Preços LMP",
+        "download_bess": "📥 Baixar CSV Telemetria BESS",
+        "download_fuel": "📥 Baixar CSV Mix Energético",
+        "fuel_names": {
+            "Natural Gas": "Gás Natural",
+            "Wind": "Eólica",
+            "Solar": "Solar",
+            "Coal and Lignite": "Carvão & Lignita",
+            "Nuclear": "Nuclear",
+            "Hydro": "Hidrelétrica",
+            "Power Storage": "Armazenamento (BESS)",
+            "Other": "Outros"
+        }
+    }
+}
+
+
+LANG_OPTIONS = {
+    "es": "🇲🇽 Español",
+    "en": "🇺🇸 English",
+    "fr": "🇫🇷 Français",
+    "zh": "🇨🇳 中文",
+    "ko": "🇰🇷 한국어",
+    "it": "🇮🇹 Italiano",
+    "pt": "🇵🇹 Português"
+}
+
+LANG_CODE_MAP = {v: k for k, v in LANG_OPTIONS.items()}
+
+
+def get_text(lang_code: str, key: str, **kwargs) -> str:
+    """
+    Obtiene la traducción dada una clave e idioma.
+    Si falta la traducción, usa 'es' por defecto.
+    """
+    lang_dict = TRANSLATIONS.get(lang_code, TRANSLATIONS["es"])
+    val = lang_dict.get(key, TRANSLATIONS["es"].get(key, key))
+    if isinstance(val, str) and kwargs:
+        try:
+            return val.format(**kwargs)
+        except Exception:
+            return val
+    return val

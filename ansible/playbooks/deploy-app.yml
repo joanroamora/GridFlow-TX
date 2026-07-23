@@ -1,0 +1,31 @@
+---
+- name: Deploy GridFlow-TX Dashboard to AWS EC2
+  hosts: ec2_nodes
+  become: yes
+  tasks:
+    - name: Create application directory
+      file:
+        path: /opt/gridflow-tx
+        state: directory
+        owner: ec2-user
+        group: docker
+        mode: '0775'
+
+    - name: Copy project files to EC2
+      copy:
+        src: "{{ item }}"
+        dest: /opt/gridflow-tx/
+        owner: ec2-user
+        group: docker
+        mode: '0644'
+      loop:
+        - ../../dashboard.py
+        - ../../translations.py
+        - ../../requirements.txt
+        - ../../Dockerfile
+        - ../../docker-compose.yml
+
+    - name: Build and launch GridFlow-TX container via Docker Compose
+      command: /usr/local/bin/docker-compose up -d --build
+      args:
+        chdir: /opt/gridflow-tx
