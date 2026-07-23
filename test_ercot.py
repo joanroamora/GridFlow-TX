@@ -13,8 +13,7 @@ import gridstatus
 
 # Configuración de logging para producción / depuración DevOps
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s - %(message)s"
 )
 logger = logging.getLogger("test_ercot")
 
@@ -45,14 +44,19 @@ def main():
     except requests.exceptions.RequestException as req_err:
         logger.error(f"Fallo de red/conectividad HTTP al solicitar Fuel Mix: {req_err}")
     except Exception as err:
-        logger.error(f"Error inesperado o cambio de estructura en portal de ERCOT al obtener Fuel Mix: {err}", exc_info=True)
+        logger.error(
+            f"Error inesperado o cambio de estructura en portal de ERCOT al obtener Fuel Mix: {err}",
+            exc_info=True,
+        )
 
     # 3. Extraer Demanda de la Red (Load) para 'today'
     logger.info("Consultando Demanda del Sistema (System Load) para hoy...")
     try:
         system_load = iso.get_load(date="today")
         if system_load is not None and not system_load.empty:
-            logger.info(f"Demanda del sistema (System Load) obtenida exitosamente: {len(system_load)} registros.")
+            logger.info(
+                f"Demanda del sistema (System Load) obtenida exitosamente: {len(system_load)} registros."
+            )
             print("\n" + "=" * 70)
             print("2. DEMANDA TOTAL DE LA RED DE TEXAS (SYSTEM LOAD - TODAY)")
             print("=" * 70)
@@ -60,21 +64,33 @@ def main():
         else:
             logger.warning("Respuesta vacía al consultar System Load.")
     except requests.exceptions.RequestException as req_err:
-        logger.error(f"Fallo de red/conectividad HTTP al solicitar System Load: {req_err}")
+        logger.error(
+            f"Fallo de red/conectividad HTTP al solicitar System Load: {req_err}"
+        )
     except Exception as err:
         logger.error(f"Error inesperado al obtener System Load: {err}", exc_info=True)
 
     # 4. Extraer Demanda por Zonas (Weather Zones - Enfocado en Houston/COAST y Texas Total)
-    logger.info("Consultando Demanda Zonal por Clima (Weather Zone Load - Houston/COAST)...")
+    logger.info(
+        "Consultando Demanda Zonal por Clima (Weather Zone Load - Houston/COAST)..."
+    )
     try:
         zonal_load = iso.get_load_by_weather_zone(date="today")
         if zonal_load is not None and not zonal_load.empty:
-            logger.info(f"Demanda zonal obtenida exitosamente: {len(zonal_load)} registros.")
-            
+            logger.info(
+                f"Demanda zonal obtenida exitosamente: {len(zonal_load)} registros."
+            )
+
             # Filtrar columnas de interés (Time, Coast [Houston], System Total [Texas])
-            cols_of_interest = [c for c in zonal_load.columns if c in ['Time', 'Interval Start', 'Coast', 'System Total']]
-            filtered_df = zonal_load[cols_of_interest] if cols_of_interest else zonal_load
-            
+            cols_of_interest = [
+                c
+                for c in zonal_load.columns
+                if c in ["Time", "Interval Start", "Coast", "System Total"]
+            ]
+            filtered_df = (
+                zonal_load[cols_of_interest] if cols_of_interest else zonal_load
+            )
+
             print("\n" + "=" * 70)
             print("3. DEMANDA ZONAL ENFOCADA: HOUSTON (COAST) Y REGIONAL (TEXAS TOTAL)")
             print("=" * 70)
@@ -82,9 +98,14 @@ def main():
         else:
             logger.warning("Respuesta vacía al consultar Zonal Load.")
     except requests.exceptions.RequestException as req_err:
-        logger.error(f"Fallo de red/conectividad HTTP al solicitar Weather Zone Load: {req_err}")
+        logger.error(
+            f"Fallo de red/conectividad HTTP al solicitar Weather Zone Load: {req_err}"
+        )
     except Exception as err:
-        logger.error(f"Error inesperado o cambio de formato público al obtener Weather Zone Load: {err}", exc_info=True)
+        logger.error(
+            f"Error inesperado o cambio de formato público al obtener Weather Zone Load: {err}",
+            exc_info=True,
+        )
 
     logger.info("=== PRUEBA DE CONEXIÓN Y EXTRACCIÓN COMPLETADA EXITOAMENTE ===")
 

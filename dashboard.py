@@ -12,11 +12,12 @@ st.set_page_config(
     page_title="GridFlow-TX | Real-Time ERCOT Telemetry",
     page_icon="⚡",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
 
 # Estilos CSS personalizados para estética premium DevOps/Data Platform
-st.markdown("""
+st.markdown(
+    """
 <style>
     .main {
         background-color: #0E1117;
@@ -50,7 +51,10 @@ st.markdown("""
         color: #A0AEC0 !important;
     }
 </style>
-""", unsafe_allow_html_allow_script_attrs=True, unsafe_allow_html=True)
+""",
+    unsafe_allow_html_allow_script_attrs=True,
+    unsafe_allow_html=True,
+)
 
 
 @st.cache_data(ttl=120, show_spinner=False)
@@ -62,20 +66,28 @@ def load_ercot_data():
     iso = gridstatus.Ercot()
     fuel_df = pd.DataFrame()
     spp_df = pd.DataFrame()
-    
+
     # 1. Obtener Mezcla de Generación (Power Storage)
     try:
         fuel_mix = iso.get_fuel_mix(date="today")
-        if fuel_mix is not None and not fuel_mix.empty and "Power Storage" in fuel_mix.columns:
+        if (
+            fuel_mix is not None
+            and not fuel_mix.empty
+            and "Power Storage" in fuel_mix.columns
+        ):
             fuel_df = fuel_mix[["Time", "Power Storage"]].copy()
-            fuel_df["Time"] = pd.to_datetime(fuel_df["Time"]).dt.tz_convert("US/Central")
+            fuel_df["Time"] = pd.to_datetime(fuel_df["Time"]).dt.tz_convert(
+                "US/Central"
+            )
     except Exception as e:
         logging.error(f"Error obteniendo Fuel Mix de ERCOT: {e}")
 
     # 2. Obtener Precios SPP/LMP para Houston Hub (HB_HOUSTON)
     try:
         # Intentar obtener SPP filtrado para HB_HOUSTON
-        spp_raw = iso.get_spp(date="today", market="REAL_TIME_15_MIN", locations=["HB_HOUSTON"])
+        spp_raw = iso.get_spp(
+            date="today", market="REAL_TIME_15_MIN", locations=["HB_HOUSTON"]
+        )
         if spp_raw is not None and not spp_raw.empty:
             spp_df = spp_raw[["Time", "SPP"]].copy()
             spp_df.rename(columns={"SPP": "LMP"}, inplace=True)
@@ -86,12 +98,18 @@ def load_ercot_data():
             # Fallback a precios indicativos
             ind_spp = iso.get_indicative_lmp_by_settlement_point(date="today")
             if ind_spp is not None and not ind_spp.empty:
-                loc_col = "Location" if "Location" in ind_spp.columns else "Settlement Point Name"
+                loc_col = (
+                    "Location"
+                    if "Location" in ind_spp.columns
+                    else "Settlement Point Name"
+                )
                 price_col = "LMP" if "LMP" in ind_spp.columns else "SPP"
                 hou = ind_spp[ind_spp[loc_col] == "HB_HOUSTON"]
                 if not hou.empty:
                     spp_df = hou[["Time", price_col]].rename(columns={price_col: "LMP"})
-                    spp_df["Time"] = pd.to_datetime(spp_df["Time"]).dt.tz_convert("US/Central")
+                    spp_df["Time"] = pd.to_datetime(spp_df["Time"]).dt.tz_convert(
+                        "US/Central"
+                    )
         except Exception as ex:
             logging.error(f"Error fallback indicative LMP: {ex}")
 
@@ -99,8 +117,12 @@ def load_ercot_data():
     now = datetime.now()
     if fuel_df.empty or len(fuel_df) < 5:
         times = [now - timedelta(minutes=5 * i) for i in range(100, -1, -1)]
-        storage_vals = np.sin(np.linspace(0, 4 * np.pi, 101)) * 800 + np.random.normal(50, 30, 101)
-        fuel_df = pd.DataFrame({"Time": pd.to_datetime(times), "Power Storage": storage_vals})
+        storage_vals = np.sin(np.linspace(0, 4 * np.pi, 101)) * 800 + np.random.normal(
+            50, 30, 101
+        )
+        fuel_df = pd.DataFrame(
+            {"Time": pd.to_datetime(times), "Power Storage": storage_vals}
+        )
 
     if spp_df.empty or len(spp_df) < 5:
         times = [now - timedelta(minutes=15 * i) for i in range(40, -1, -1)]
@@ -118,7 +140,9 @@ def load_ercot_data():
 
 # --- INTERFAZ PRINCIPAL STREAMLIT ---
 st.title("⚡ GridFlow-TX | ERCOT Real-Time Telemetry & BESS Dashboard")
-st.caption("Arquitectura DevOps & Data Platform | Rama: `Feature1TestEnvERCOTApi` | Entorno: `AWS EC2 Free Tier`")
+st.caption(
+    "Arquitectura DevOps & Data Platform | Rama: `Feature1TestEnvERCOTApi` | Entorno: `AWS EC2 Free Tier`"
+)
 
 # Sidebar
 st.sidebar.header("⚙️ Configuración & Control")
@@ -127,7 +151,7 @@ alert_threshold = st.sidebar.number_input(
     min_value=10.0,
     max_value=5000.0,
     value=100.0,
-    step=5.0
+    step=5.0,
 )
 
 if st.sidebar.button("🔄 Actualizar Datos ERCOT"):
@@ -153,7 +177,9 @@ prev_lmp = float(spp_df["LMP"].iloc[-2]) if len(spp_df) > 1 else latest_lmp
 lmp_delta = latest_lmp - prev_lmp
 
 latest_bess = float(fuel_df["Power Storage"].iloc[-1]) if not fuel_df.empty else 0.0
-prev_bess = float(fuel_df["Power Storage"].iloc[-2]) if len(fuel_df) > 1 else latest_bess
+prev_bess = (
+    float(fuel_df["Power Storage"].iloc[-2]) if len(fuel_df) > 1 else latest_bess
+)
 bess_delta = latest_bess - prev_bess
 
 max_lmp_today = float(spp_df["LMP"].max()) if not spp_df.empty else 0.0
@@ -168,7 +194,7 @@ if latest_lmp > alert_threshold:
             superando el umbral crítico configurado de <strong>${alert_threshold:.2f} / MWh</strong>.
         </div>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 else:
     st.markdown(
@@ -178,7 +204,7 @@ else:
             <strong>${latest_lmp:.2f} / MWh</strong> (Por debajo del umbral de alerta de ${alert_threshold:.2f} / MWh).
         </div>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
 # --- TARJETAS DE MÉTRICAS ---
@@ -188,34 +214,34 @@ with col1:
     st.metric(
         label="Houston Hub LMP ($/MWh)",
         value=f"${latest_lmp:.2f}",
-        delta=f"{lmp_delta:+.2f} $/MWh"
+        delta=f"{lmp_delta:+.2f} $/MWh",
     )
 
 with col2:
-    status_text = "Descargando" if latest_bess > 0 else "Cargando" if latest_bess < 0 else "Neutral"
+    status_text = (
+        "Descargando"
+        if latest_bess > 0
+        else "Cargando" if latest_bess < 0 else "Neutral"
+    )
     st.metric(
         label=f"Baterías BESS ({status_text})",
         value=f"{latest_bess:+.1f} MW",
-        delta=f"{bess_delta:+.1f} MW"
+        delta=f"{bess_delta:+.1f} MW",
     )
 
 with col3:
-    st.metric(
-        label="Precio Máximo Hoy (Houston)",
-        value=f"${max_lmp_today:.2f}"
-    )
+    st.metric(label="Precio Máximo Hoy (Houston)", value=f"${max_lmp_today:.2f}")
 
 with col4:
     avg_bess = float(fuel_df["Power Storage"].mean()) if not fuel_df.empty else 0.0
-    st.metric(
-        label="Promedio Actividad BESS Hoy",
-        value=f"{avg_bess:+.1f} MW"
-    )
+    st.metric(label="Promedio Actividad BESS Hoy", value=f"{avg_bess:+.1f} MW")
 
 st.markdown("---")
 
 # --- GRÁFICO INTERACTIVO PLOTLY ---
-st.subheader("📈 Telemetría Comparativa: Precios LMP Houston vs. Flujo de Potencia BESS")
+st.subheader(
+    "📈 Telemetría Comparativa: Precios LMP Houston vs. Flujo de Potencia BESS"
+)
 
 fig = make_subplots(specs=[[{"secondary_y": True}]])
 
@@ -226,9 +252,9 @@ fig.add_trace(
         y=spp_df["LMP"],
         name="LMP Price HB_HOUSTON ($/MWh)",
         line=dict(color="#FF4B4B", width=3),
-        mode="lines+markers"
+        mode="lines+markers",
     ),
-    secondary_y=False
+    secondary_y=False,
 )
 
 # Línea de Alerta ($100/MWh)
@@ -238,7 +264,7 @@ fig.add_hline(
     line_color="#FFA500",
     annotation_text=f"Umbral Alerta (${alert_threshold}/MWh)",
     annotation_position="bottom right",
-    secondary_y=False
+    secondary_y=False,
 )
 
 # Área / Línea de Almacenamiento Baterías BESS
@@ -250,9 +276,9 @@ fig.add_trace(
         line=dict(color="#00D4B1", width=2),
         fill="tozeroy",
         fillcolor="rgba(0, 212, 177, 0.15)",
-        mode="lines"
+        mode="lines",
     ),
-    secondary_y=True
+    secondary_y=True,
 )
 
 # Diseño del gráfico
@@ -261,12 +287,16 @@ fig.update_layout(
     height=500,
     margin=dict(l=20, r=20, t=40, b=20),
     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-    hovermode="x unified"
+    hovermode="x unified",
 )
 
 fig.update_xaxes(title_text="Hora del Día (US/Central)")
-fig.update_yaxes(title_text="<b>Precio LMP ($/MWh)</b>", color="#FF4B4B", secondary_y=False)
-fig.update_yaxes(title_text="<b>Potencia BESS (MW)</b>", color="#00D4B1", secondary_y=True)
+fig.update_yaxes(
+    title_text="<b>Precio LMP ($/MWh)</b>", color="#FF4B4B", secondary_y=False
+)
+fig.update_yaxes(
+    title_text="<b>Potencia BESS (MW)</b>", color="#00D4B1", secondary_y=True
+)
 
 st.plotly_chart(fig, use_container_width=True)
 
