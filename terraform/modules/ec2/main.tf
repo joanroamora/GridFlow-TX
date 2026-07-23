@@ -60,12 +60,18 @@ resource "aws_security_group" "ec2_sg" {
   }
 }
 
+resource "aws_key_pair" "app_key" {
+  count      = var.public_key != "" ? 1 : 0
+  key_name   = "gridflow-ec2-key-${var.environment}"
+  public_key = var.public_key
+}
+
 resource "aws_instance" "app_node" {
   ami                    = data.aws_ami.amazon_linux_2023.id
   instance_type          = var.instance_type
   subnet_id              = var.subnet_id
   vpc_security_group_ids = [aws_security_group.ec2_sg.id]
-  key_name               = var.key_name != "" ? var.key_name : null
+  key_name               = var.public_key != "" ? aws_key_pair.app_key[0].key_name : (var.key_name != "" ? var.key_name : null)
 
   root_block_device {
     volume_size           = 8
