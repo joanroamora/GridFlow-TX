@@ -1,5 +1,5 @@
 ---
-- name: Deploy GridFlow-TX Dashboard to AWS EC2
+- name: Deploy GridFlow-TX Platform Gateway to AWS EC2
   hosts: ec2_nodes
   become: yes
   tasks:
@@ -19,13 +19,22 @@
         group: docker
         mode: '0644'
       loop:
+        - ../../app.py
         - ../../dashboard.py
         - ../../translations.py
         - ../../requirements.txt
         - ../../Dockerfile
         - ../../docker-compose.yml
 
-    - name: Build Docker image for GridFlow-TX
+    - name: Copy services module directory to EC2
+      copy:
+        src: ../../services
+        dest: /opt/gridflow-tx/
+        owner: ec2-user
+        group: docker
+        mode: '0755'
+
+    - name: Build Docker image for GridFlow-TX Platform
       command: docker build -t gridflow-gui .
       args:
         chdir: /opt/gridflow-tx
