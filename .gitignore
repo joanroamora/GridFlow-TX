@@ -1,8 +1,62 @@
+# ==========================================
+# GridFlow-TX .gitignore
+# Exclusiones de Git para Python, Terraform, Docker, Ansible y DevSecOps
+# ==========================================
+
+# Virtual Environments
 .venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Python Cache & Bytecode
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Terraform State & Local Cache
+terraform/.terraform/
 .terraform/
 *.tfstate
 *.tfstate.*
+*.tfvars
+*.tfvars.json
 .terraform.lock.hcl
+crash.log
+crash.*.log
+
+# DevSecOps & Veracode Artifacts
+veracode-package.zip
+results.json
+trivy-results.json
 *.log
+
+# Sensitive Files & Credentials
+.env
+.env.local
+*.pem
+*.key
+id_rsa
+id_rsa.pub
+
+# OS & Editor Specific Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
