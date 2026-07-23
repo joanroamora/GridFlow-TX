@@ -1,14 +1,19 @@
 ---
-- name: Deploy GridFlow-TX Dashboard to AWS EC2
+- name: Deploy GridFlow-TX Platform Gateway & LGTM Observability Stack to AWS EC2
   hosts: ec2_nodes
   become: yes
   tasks:
+    - name: Ensure docker group exists
+      group:
+        name: docker
+        state: present
+
     - name: Create application directory
       file:
         path: /opt/gridflow-tx
         state: directory
         owner: ec2-user
-        group: docker
+        group: ec2-user
         mode: '0775'
 
     - name: Copy project files to EC2
@@ -16,27 +21,38 @@
         src: "{{ item }}"
         dest: /opt/gridflow-tx/
         owner: ec2-user
-        group: docker
+        group: ec2-user
         mode: '0644'
       loop:
+        - ../../app.py
         - ../../dashboard.py
         - ../../translations.py
         - ../../requirements.txt
         - ../../Dockerfile
         - ../../docker-compose.yml
 
-    - name: Build Docker image for GridFlow-TX
+    - name: Copy services module directory to EC2
+      copy:
+        src: ../../services
+        dest: /opt/gridflow-tx/
+        owner: ec2-user
+        group: ec2-user
+        mode: '0755'
+
+    - name: Copy observability stack directory to EC2
+      copy:
+        src: ../../observability
+        dest: /opt/gridflow-tx/
+        owner: ec2-user
+        group: ec2-user
+        mode: '0755'
+
+    - name: Build Docker image for GridFlow-TX Platform App
       command: docker build -t gridflow-gui .
       args:
         chdir: /opt/gridflow-tx
 
-    - name: Stop existing container if running
-      command: docker stop gridflow-dashboard
-      failed_when: false
-
-    - name: Remove existing container if present
-      command: docker rm gridflow-dashboard
-      failed_when: false
-
-    - name: Launch GridFlow-TX container on AWS EC2
-      command: docker run -d --name gridflow-dashboard -p 8501:8501 --restart unless-stopped gridflow-gui
+    - name: Launch LGTM Observability Stack and Application via Docker Compose
+      command: docker-compose up -d
+      args:
+        chdir: /opt/gridflow-tx

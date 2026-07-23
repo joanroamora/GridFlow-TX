@@ -45,6 +45,15 @@ resource "aws_security_group" "ec2_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  # Grafana Master Observability Dashboard Port
+  ingress {
+    description = "Grafana Observability Dashboard"
+    from_port   = 3000
+    to_port     = 3000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   # Outbound rule
   egress {
     from_port   = 0

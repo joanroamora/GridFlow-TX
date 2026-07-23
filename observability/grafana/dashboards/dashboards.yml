@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: 'GridFlow-TX Observability Dashboards'
+    orgId: 1
+    folder: 'GridFlow-TX Master Observability'
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /etc/grafana/provisioning/dashboards

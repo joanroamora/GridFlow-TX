@@ -5,9 +5,16 @@ on:
     branches:
       - main
       - staging
+      - Feature2
   push:
     branches:
+      - main
+      - Feature2
       - Feature1TestEnvERCOTApi
+
+permissions:
+  contents: read
+  packages: write
 
 jobs:
   syntax-and-lint-validation:
@@ -23,7 +30,7 @@ jobs:
           python-version: '3.12'
           cache: 'pip'
 
-      - name: Install Python Linters & Ansible
+      - name: Install Linters & Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install flake8 black yamllint ansible-core
@@ -39,9 +46,10 @@ jobs:
         run: |
           yamllint -d "{extends: relaxed, rules: {line-length: disable}}" .github/ ansible/
 
-
       - name: Ansible Playbook Syntax Verification
-        run: ansible-playbook --syntax-check ansible/playbooks/setup-node.yml
+        run: |
+          ansible-playbook --syntax-check ansible/playbooks/setup-node.yml
+          ansible-playbook --syntax-check ansible/playbooks/deploy-app.yml
 
       - name: Dockerfile Linting (Hadolint)
         uses: hadolint/hadolint-action@v3.1.0
@@ -49,8 +57,38 @@ jobs:
           dockerfile: Dockerfile
           ignore: DL3008,DL3013
 
+  unit-tests-and-coverage:
+    name: 2. Unit Testing & Coverage (Pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Execute Pytest Suite with Coverage
+        run: |
+          pytest tests/ --cov=. --cov-report=xml --cov-report=term
+
+      - name: Upload Test & Coverage Artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unit-test-coverage-results
+          path: coverage.xml
+          retention-days: 14
+
   python-sast-security:
-    name: 2. Python SAST Security Scan (Bandit)
+    name: 3. Python SAST Security Scan (Bandit)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -67,8 +105,26 @@ jobs:
       - name: Run Bandit Security Analysis
         run: bandit -r . -x ./.venv,./tests --severity-level medium --confidence-level medium
 
+  dependency-sca-scan:
+    name: 4. Dependency Vulnerability SCA Scan (Pip-Audit)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Pip-Audit
+        run: pip install pip-audit
+
+      - name: Run Dependency Audit Scan
+        run: pip-audit -r requirements.txt || true
+
   terraform-devsecops:
-    name: 3. Terraform Validation & IaC Security Scan (Checkov)
+    name: 5. Terraform Validation & IaC Security Scan (Checkov)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -99,37 +155,10 @@ jobs:
           output_format: cli
           soft_fail: true
 
-  veracode-security-scan:
-    name: 4. Veracode SAST & SCA Security Scan
+  docker-build-and-ghcr-publish:
+    name: 6. Docker Build & Publish Artifact to GitHub Container Registry (GHCR)
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Package Source Code for Veracode Scan
-        run: |
-          zip -r veracode-package.zip . -x "*.git*" "*.venv*" "terraform/.terraform*"
-
-      - name: Veracode Pipeline Scan
-        uses: veracode/veracode-pipeline-scan-action@v1.0.12
-        with:
-          vid: ${{ secrets.VERACODE_API_ID }}
-          vkey: ${{ secrets.VERACODE_API_KEY }}
-          file: veracode-package.zip
-          fail_build: false
-        continue-on-error: true
-
-      - name: Upload Veracode Scan Results Artifact
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: veracode-security-results
-          path: results.json
-          retention-days: 14
-
-  docker-container-security:
-    name: 5. Docker Build & Trivy Vulnerability Scan
-    runs-on: ubuntu-latest
+    needs: [syntax-and-lint-validation, unit-tests-and-coverage, python-sast-security]
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -137,19 +166,58 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build Docker Image
+      - name: Log in to GitHub Container Registry (GHCR)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker Metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=sha,prefix=sha-
+            type=ref,event=branch
+
+      - name: Build and Push Image to GHCR
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  trivy-container-security:
+    name: 7. Container Vulnerability Scan (Trivy)
+    runs-on: ubuntu-latest
+    needs: docker-build-and-ghcr-publish
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Local Image for Trivy Vulnerability Scan
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
           push: false
-          tags: gridflow-tx:ci-test
+          tags: gridflow-tx:ci-scan
           load: true
 
       - name: Run Trivy Container Vulnerability Scan
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'gridflow-tx:ci-test'
+          image-ref: 'gridflow-tx:ci-scan'
           format: 'table'
           exit-code: '0'
           ignore-unfixed: true
