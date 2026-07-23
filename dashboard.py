@@ -132,6 +132,17 @@ st.markdown(
         flex-wrap: wrap;
     }
 
+    
+    /* Top Subtle Language Selector Buttons */
+    div[data-testid="column"] button[key^="top_flag_"] {
+        padding: 2px 4px !important;
+        font-size: 0.8rem !important;
+        border-radius: 6px !important;
+        font-weight: 600 !important;
+        height: 30px !important;
+        line-height: 1.0 !important;
+    }
+
     /* Plotly responsiveness */
     .js-plotly-plot {
         width: 100% !important;
@@ -151,6 +162,27 @@ def t(key: str, **kwargs) -> str:
     """Helper rápido de traducción."""
     return get_text(current_lang, key, **kwargs)
 
+# BARRA SUPERIOR SUBTIL DE BANDERAS DE IDIOMA (TOPMOST)
+top_col_space, top_col_flags = st.columns([4, 4])
+with top_col_flags:
+    lang_items = [
+        ("es", "🇨🇴", "ES"),
+        ("en", "🇬🇧", "EN"),
+        ("fr", "🇫🇷", "FR"),
+        ("zh", "🇨🇳", "ZH"),
+        ("ko", "🇰🇷", "KO"),
+        ("it", "🇮🇹", "IT"),
+        ("pt", "🇧🇷", "PT"),
+    ]
+    flag_cols = st.columns(len(lang_items))
+    for idx, (lcode, flag, name) in enumerate(lang_items):
+        with flag_cols[idx]:
+            is_active = (current_lang == lcode)
+            btn_type = "primary" if is_active else "secondary"
+            if st.button(f"{flag} {name}", key=f"top_flag_{lcode}", type=btn_type, use_container_width=True):
+                if st.session_state["lang_code"] != lcode:
+                    st.session_state["lang_code"] = lcode
+                    st.rerun()
 
 
 # 4. Carga y Procesamiento de Datos ERCOT
@@ -193,23 +225,23 @@ def load_ercot_telemetry():
     except Exception as e:
         logger.error(f"Error obteniendo Demanda ERCOT: {e}")
 
-    # Fallback Sintético si la API no devuelve datos suficientes
+        # Fallback Sintético de Alta Fidelidad (30 Días / 720 Horas de Telemetría)
     now = datetime.now()
-    if fuel_df.empty or len(fuel_df) < 5:
-        times = [now - timedelta(minutes=5 * i) for i in range(120, -1, -1)]
-        t_arr = np.linspace(0, 4 * np.pi, len(times))
+    if fuel_df.empty or len(fuel_df) < 200:
+        times_15m = [now - timedelta(minutes=15 * i) for i in range(2880, -1, -1)]
+        t_arr = np.linspace(0, 30 * 2 * np.pi, len(times_15m))
         
-        storage_vals = np.sin(t_arr) * 1200 + np.random.normal(100, 50, len(times))
-        solar_vals = np.maximum(0, np.sin(t_arr - np.pi/2) * 14000)
-        wind_vals = 8000 + np.cos(t_arr) * 3000 + np.random.normal(0, 200, len(times))
-        gas_vals = 35000 + np.sin(t_arr) * 5000
-        coal_vals = 9000 + np.random.normal(0, 100, len(times))
-        nuclear_vals = np.full(len(times), 4950.0)
-        hydro_vals = np.full(len(times), 250.0)
-        other_vals = np.full(len(times), 100.0)
+        storage_vals = np.sin(t_arr * 2) * 1200 + np.random.normal(100, 50, len(times_15m))
+        solar_vals = np.maximum(0, np.sin(t_arr - np.pi/2) * 15000)
+        wind_vals = 9000 + np.cos(t_arr * 0.5) * 4000 + np.random.normal(0, 300, len(times_15m))
+        gas_vals = 36000 + np.sin(t_arr) * 6000 + np.random.normal(0, 400, len(times_15m))
+        coal_vals = 9500 + np.random.normal(0, 150, len(times_15m))
+        nuclear_vals = np.full(len(times_15m), 4950.0)
+        hydro_vals = np.full(len(times_15m), 250.0)
+        other_vals = np.full(len(times_15m), 100.0)
 
         fuel_df = pd.DataFrame({
-            "Time": pd.to_datetime(times),
+            "Time": pd.to_datetime(times_15m),
             "Power Storage": storage_vals,
             "Solar": solar_vals,
             "Wind": wind_vals,
@@ -220,23 +252,23 @@ def load_ercot_telemetry():
             "Other": other_vals,
         })
 
-    if spp_df.empty or len(spp_df) < 5:
-        times_15m = [now - timedelta(minutes=15 * i) for i in range(48, -1, -1)]
-        base_prices = 30.0 + np.random.normal(0, 8, len(times_15m))
-        spike_indices = [15, 30, 42]
+    if spp_df.empty or len(spp_df) < 200:
+        times_15m = [now - timedelta(minutes=15 * i) for i in range(2880, -1, -1)]
+        base_prices = 32.0 + np.sin(np.linspace(0, 30 * 2 * np.pi, len(times_15m))) * 12.0 + np.random.normal(0, 6, len(times_15m))
+        spike_indices = np.random.choice(len(times_15m), size=35, replace=False)
         for idx in spike_indices:
-            if idx < len(base_prices):
-                base_prices[idx] = np.random.uniform(180, 450)
+            base_prices[idx] = np.random.uniform(220, 980)
         spp_df = pd.DataFrame({
             "Time": pd.to_datetime(times_15m),
-            "LMP": np.clip(base_prices, 10.0, 3000.0)
+            "LMP": np.clip(base_prices, 8.0, 3000.0)
         })
 
-    if load_df.empty or len(load_df) < 5:
-        times_5m = [now - timedelta(minutes=5 * i) for i in range(120, -1, -1)]
-        load_vals = 65000 + np.sin(np.linspace(0, 2 * np.pi, len(times_5m))) * 15000 + np.random.normal(0, 300, len(times_5m))
+    if load_df.empty or len(load_df) < 200:
+        times_15m = [now - timedelta(minutes=15 * i) for i in range(2880, -1, -1)]
+        t_arr = np.linspace(0, 30 * 2 * np.pi, len(times_15m))
+        load_vals = 68000 + np.sin(t_arr) * 16000 + np.random.normal(0, 400, len(times_15m))
         load_df = pd.DataFrame({
-            "Time": pd.to_datetime(times_5m),
+            "Time": pd.to_datetime(times_15m),
             "Load": load_vals
         })
 
@@ -282,44 +314,8 @@ st.sidebar.markdown(t("tech_specs_body"))
 
 
 # 7. ENCABEZADO Y KPIS DEL DASHBOARD
-head_col1, head_col2 = st.columns([3, 2])
-
-with head_col1:
-    st.title(t("page_title"))
-    st.caption(t("page_subtitle"))
-
-with head_col2:
-    st.markdown(
-        """
-        <div style="text-align: right; margin-bottom: 6px; padding-top: 10px;">
-            <span style="font-size: 0.85rem; font-weight: 700; color: #94A3B8; letter-spacing: 0.5px; text-transform: uppercase;">
-                🌐 Idioma / Language
-            </span>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-    
-    lang_items = [
-        ("es", "🇲🇽", "ES"),
-        ("en", "🇺🇸", "EN"),
-        ("fr", "🇫🇷", "FR"),
-        ("zh", "🇨🇳", "ZH"),
-        ("ko", "🇰🇷", "KO"),
-        ("it", "🇮🇹", "IT"),
-        ("pt", "🇵🇹", "PT"),
-    ]
-    
-    flag_cols = st.columns(len(lang_items))
-    for idx, (code, flag, name) in enumerate(lang_items):
-        with flag_cols[idx]:
-            is_active = (current_lang == code)
-            btn_type = "primary" if is_active else "secondary"
-            if st.button(f"{flag} {name}", key=f"lang_btn_{code}", type=btn_type, use_container_width=True):
-                if st.session_state["lang_code"] != code:
-                    st.session_state["lang_code"] = code
-                    st.rerun()
-
+st.title(t("page_title"))
+st.caption(t("page_subtitle"))
 
 # Métricas Calculadas
 latest_lmp = float(spp_df["LMP"].iloc[-1]) if not spp_df.empty else 0.0
@@ -493,14 +489,26 @@ def filter_and_resample_dataset(df, time_col="Time", preset="all", start_t=None,
     fdf = df.copy()
     max_t = fdf[time_col].max()
 
-    if preset == "3h":
-        cutoff = max_t - timedelta(hours=3)
-        fdf = fdf[fdf[time_col] >= cutoff]
-    elif preset == "6h":
+    if preset == "6h":
         cutoff = max_t - timedelta(hours=6)
         fdf = fdf[fdf[time_col] >= cutoff]
     elif preset == "12h":
         cutoff = max_t - timedelta(hours=12)
+        fdf = fdf[fdf[time_col] >= cutoff]
+    elif preset == "24h":
+        cutoff = max_t - timedelta(hours=24)
+        fdf = fdf[fdf[time_col] >= cutoff]
+    elif preset == "3d":
+        cutoff = max_t - timedelta(days=3)
+        fdf = fdf[fdf[time_col] >= cutoff]
+    elif preset == "7d":
+        cutoff = max_t - timedelta(days=7)
+        fdf = fdf[fdf[time_col] >= cutoff]
+    elif preset == "14d":
+        cutoff = max_t - timedelta(days=14)
+        fdf = fdf[fdf[time_col] >= cutoff]
+    elif preset == "30d":
+        cutoff = max_t - timedelta(days=30)
         fdf = fdf[fdf[time_col] >= cutoff]
     elif preset == "custom" and start_t and end_t:
         fdf = fdf[(fdf[time_col] >= pd.to_datetime(start_t)) & (fdf[time_col] <= pd.to_datetime(end_t))]
@@ -509,7 +517,7 @@ def filter_and_resample_dataset(df, time_col="Time", preset="all", start_t=None,
         fdf = df.copy()
 
     if resample_freq != "raw":
-        rule_map = {"15m": "15min", "30m": "30min", "1h": "1h"}
+        rule_map = {"15m": "15min", "30m": "30min", "1h": "1h", "6h": "6h", "1d": "1D"}
         rule = rule_map.get(resample_freq)
         if rule:
             num_cols = fdf.select_dtypes(include=[np.number]).columns
@@ -531,10 +539,13 @@ def apply_plotly_time_controls(fig):
         rangeslider=dict(visible=True, thickness=0.08),
         rangeselector=dict(
             buttons=list([
-                dict(count=1, label="1h", step="hour", stepmode="backward"),
-                dict(count=3, label="3h", step="hour", stepmode="backward"),
                 dict(count=6, label="6h", step="hour", stepmode="backward"),
-                dict(step="all", label="Reset")
+                dict(count=12, label="12h", step="hour", stepmode="backward"),
+                dict(count=1, label="1d", step="day", stepmode="backward"),
+                dict(count=3, label="3d", step="day", stepmode="backward"),
+                dict(count=7, label="7d", step="day", stepmode="backward"),
+                dict(count=30, label="30d", step="day", stepmode="backward"),
+                dict(step="all", label="All")
             ]),
             font=dict(color="#E2E8F0", size=11),
             bgcolor="#1E293B",
