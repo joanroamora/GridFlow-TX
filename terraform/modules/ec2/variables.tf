@@ -25,3 +25,9 @@ variable "key_name" {
   type        = string
   default     = ""
 }
+
+variable "public_key" {
+  description = "SSH public key"
+  type        = string
+  default     = ""
+}
