@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 
 from services.bess_intelligence import (
     run_bess_arbitrage_optimization,
-    train_ml_short_term_forecast
+    train_ml_short_term_forecast,
 )
 
 
@@ -18,11 +18,7 @@ def test_bess_arbitrage_optimization():
     spp_df = pd.DataFrame({"Time": times, "LMP": prices})
 
     opt_df = run_bess_arbitrage_optimization(
-        spp_df,
-        capacity_mwh=100.0,
-        power_mw=25.0,
-        rte_pct=88.0,
-        initial_soc_pct=20.0
+        spp_df, capacity_mwh=100.0, power_mw=25.0, rte_pct=88.0, initial_soc_pct=20.0
     )
 
     assert not opt_df.empty
@@ -46,7 +42,7 @@ def test_ml_short_term_forecast():
     fc_df = train_ml_short_term_forecast(spp_df, horizon_hours=4)
 
     assert not fc_df.empty
-    assert len(fc_df) == 16 # 4 hours * 4 intervals
+    assert len(fc_df) == 16  # 4 hours * 4 intervals
     assert "Pred_LMP" in fc_df.columns
     assert "Pred_LMP_Upper" in fc_df.columns
     assert "Pred_LMP_Lower" in fc_df.columns

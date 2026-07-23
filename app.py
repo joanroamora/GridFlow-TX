@@ -203,17 +203,21 @@ lang_flags_config = [
 
 flags_html_items = []
 for code_name, flag_url, label_str, title_str in lang_flags_config:
-    is_active = (current_lang == code_name)
-    active_style = "border: 1px solid #3B82F6; background-color: #1E3A8A; box-shadow: 0 0 6px rgba(59, 130, 246, 0.5); color: #FFFFFF;" if is_active else "border: 1px solid #1E293B; background-color: #111827; color: #94A3B8;"
-    item_html = f'''<a href="?lang={code_name}" target="_self" title="{title_str}" style="text-decoration: none;">
+    is_active = current_lang == code_name
+    active_style = (
+        "border: 1px solid #3B82F6; background-color: #1E3A8A; box-shadow: 0 0 6px rgba(59, 130, 246, 0.5); color: #FFFFFF;"
+        if is_active
+        else "border: 1px solid #1E293B; background-color: #111827; color: #94A3B8;"
+    )
+    item_html = f"""<a href="?lang={code_name}" target="_self" title="{title_str}" style="text-decoration: none;">
         <div style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px; border-radius: 5px; font-size: 0.72rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; {active_style}">
             <img src="{flag_url}" width="15" height="10" style="border-radius: 2px; object-fit: cover; vertical-align: middle;" alt="{code_name}"/>
             <span>{label_str}</span>
         </div>
-    </a>'''
+    </a>"""
     flags_html_items.append(item_html)
 
-top_bar_html = f'''
+top_bar_html = f"""
 <div style="display: flex; justify-content: space-between; align-items: center; padding: 0px 0px 10px 0px; border-bottom: 1px solid #1E293B; margin-bottom: 15px;">
     <div>
         <span style="font-size: 0.90rem; font-weight: 700; color: #38BDF8; letter-spacing: 0.5px;">⚡ GridFlow-TX</span>
@@ -224,11 +228,12 @@ top_bar_html = f'''
         {''.join(flags_html_items)}
     </div>
 </div>
-'''
+"""
 st.markdown(top_bar_html, unsafe_allow_html=True)
 
 
 from observability.telemetry_tracer import trace_span
+
 
 # 5. CARGA DE DATOS COMPARTIDA (SHARED TELEMETRY PIPELINE)
 @st.cache_data(ttl=120, show_spinner=False)
@@ -242,46 +247,59 @@ def load_ercot_telemetry_dataset():
     if fuel_df.empty:
         times_15m = [now - timedelta(minutes=15 * i) for i in range(2880, -1, -1)]
         t_arr = np.linspace(0, 30 * 2 * np.pi, len(times_15m))
-        storage_vals = np.sin(t_arr * 2) * 1200 + np.random.normal(100, 50, len(times_15m))
-        solar_vals = np.maximum(0, np.sin(t_arr - np.pi/2) * 15000)
-        wind_vals = 9000 + np.cos(t_arr * 0.5) * 4000 + np.random.normal(0, 300, len(times_15m))
-        gas_vals = 36000 + np.sin(t_arr) * 6000 + np.random.normal(0, 400, len(times_15m))
+        storage_vals = np.sin(t_arr * 2) * 1200 + np.random.normal(
+            100, 50, len(times_15m)
+        )
+        solar_vals = np.maximum(0, np.sin(t_arr - np.pi / 2) * 15000)
+        wind_vals = (
+            9000 + np.cos(t_arr * 0.5) * 4000 + np.random.normal(0, 300, len(times_15m))
+        )
+        gas_vals = (
+            36000 + np.sin(t_arr) * 6000 + np.random.normal(0, 400, len(times_15m))
+        )
         coal_vals = 9500 + np.random.normal(0, 150, len(times_15m))
         nuclear_vals = np.full(len(times_15m), 4950.0)
         hydro_vals = np.full(len(times_15m), 250.0)
         other_vals = np.full(len(times_15m), 100.0)
 
-        fuel_df = pd.DataFrame({
-            "Time": pd.to_datetime(times_15m),
-            "Power Storage": storage_vals,
-            "Solar": solar_vals,
-            "Wind": wind_vals,
-            "Natural Gas": gas_vals,
-            "Coal and Lignite": coal_vals,
-            "Nuclear": nuclear_vals,
-            "Hydro": hydro_vals,
-            "Other": other_vals,
-        })
+        fuel_df = pd.DataFrame(
+            {
+                "Time": pd.to_datetime(times_15m),
+                "Power Storage": storage_vals,
+                "Solar": solar_vals,
+                "Wind": wind_vals,
+                "Natural Gas": gas_vals,
+                "Coal and Lignite": coal_vals,
+                "Nuclear": nuclear_vals,
+                "Hydro": hydro_vals,
+                "Other": other_vals,
+            }
+        )
 
     if spp_df.empty or len(spp_df) < 200:
         times_15m = [now - timedelta(minutes=15 * i) for i in range(2880, -1, -1)]
-        base_prices = 32.0 + np.sin(np.linspace(0, 30 * 2 * np.pi, len(times_15m))) * 12.0 + np.random.normal(0, 6, len(times_15m))
+        base_prices = (
+            32.0
+            + np.sin(np.linspace(0, 30 * 2 * np.pi, len(times_15m))) * 12.0
+            + np.random.normal(0, 6, len(times_15m))
+        )
         spike_indices = np.random.choice(len(times_15m), size=35, replace=False)
         for idx in spike_indices:
             base_prices[idx] = np.random.uniform(220, 980)
-        spp_df = pd.DataFrame({
-            "Time": pd.to_datetime(times_15m),
-            "LMP": np.clip(base_prices, 8.0, 3000.0)
-        })
+        spp_df = pd.DataFrame(
+            {
+                "Time": pd.to_datetime(times_15m),
+                "LMP": np.clip(base_prices, 8.0, 3000.0),
+            }
+        )
 
     if load_df.empty or len(load_df) < 200:
         times_15m = [now - timedelta(minutes=15 * i) for i in range(2880, -1, -1)]
         t_arr = np.linspace(0, 30 * 2 * np.pi, len(times_15m))
-        load_vals = 68000 + np.sin(t_arr) * 16000 + np.random.normal(0, 400, len(times_15m))
-        load_df = pd.DataFrame({
-            "Time": pd.to_datetime(times_15m),
-            "Load": load_vals
-        })
+        load_vals = (
+            68000 + np.sin(t_arr) * 16000 + np.random.normal(0, 400, len(times_15m))
+        )
+        load_df = pd.DataFrame({"Time": pd.to_datetime(times_15m), "Load": load_vals})
 
     for df in [fuel_df, spp_df, load_df]:
         if "Time" in df.columns and pd.api.types.is_datetime64_any_dtype(df["Time"]):
@@ -314,7 +332,7 @@ if active_service_id != "hub":
                 Módulo Activo: <strong style="color: #38BDF8;">{srv_info['icon']} {t(srv_info['title_key'])}</strong>
             </div>
             """,
-            unsafe_allow_html=True
+            unsafe_allow_html=True,
         )
 
 
@@ -345,8 +363,10 @@ if active_service_id == "hub":
 
     for idx, service in enumerate(registered_services):
         with cols[idx]:
-            tags_html = "".join([f'<span class="tag-pill">{tag}</span>' for tag in service["tags"]])
-            
+            tags_html = "".join(
+                [f'<span class="tag-pill">{tag}</span>' for tag in service["tags"]]
+            )
+
             st.markdown(
                 f"""
                 <div class="service-card">
@@ -366,8 +386,13 @@ if active_service_id == "hub":
                 """,
                 unsafe_allow_html=True,
             )
-            
-            if st.button(t("launch_btn"), key=f"launch_srv_{service['id']}", type="primary", use_container_width=True):
+
+            if st.button(
+                t("launch_btn"),
+                key=f"launch_srv_{service['id']}",
+                type="primary",
+                use_container_width=True,
+            ):
                 st.session_state["active_service"] = service["id"]
                 st.rerun()
 
@@ -384,7 +409,9 @@ else:
         render_func = getattr(mod, func_name)
         render_func(current_lang, spp_df, fuel_df, load_df)
     except Exception as err:
-        logger.error(f"Error cargando microservicio {active_service_id}: {err}", exc_info=True)
+        logger.error(
+            f"Error cargando microservicio {active_service_id}: {err}", exc_info=True
+        )
         st.error(f"Error al cargar el microservicio '{active_service_id}': {err}")
 
 # 8. SLEEK MINIMALIST ENTERPRISE FOOTER

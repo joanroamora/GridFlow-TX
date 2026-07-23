@@ -6,10 +6,12 @@ on:
       - main
       - staging
       - Feature2
+      - Feature3
   push:
     branches:
       - main
       - Feature2
+      - Feature3
       - Feature1TestEnvERCOTApi
 
 permissions:
