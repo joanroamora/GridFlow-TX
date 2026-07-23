@@ -25,7 +25,18 @@
         - ../../Dockerfile
         - ../../docker-compose.yml
 
-    - name: Build and launch GridFlow-TX container via Docker Compose
-      command: /usr/local/bin/docker-compose up -d --build
+    - name: Build Docker image for GridFlow-TX
+      command: docker build -t gridflow-gui .
       args:
         chdir: /opt/gridflow-tx
+
+    - name: Stop existing container if running
+      command: docker stop gridflow-dashboard
+      failed_when: false
+
+    - name: Remove existing container if present
+      command: docker rm gridflow-dashboard
+      failed_when: false
+
+    - name: Launch GridFlow-TX container on AWS EC2
+      command: docker run -d --name gridflow-dashboard -p 8501:8501 --restart unless-stopped gridflow-gui
