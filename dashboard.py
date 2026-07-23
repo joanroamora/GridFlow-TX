@@ -152,7 +152,12 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# 3. Manejo de Idioma y Session State
+# 3. Manejo de Idioma y Session State con Banderas Reales (Image Icons & Query Params)
+if "lang" in st.query_params:
+    qp_lang = st.query_params["lang"]
+    if qp_lang in ["es", "en", "fr", "zh", "ko", "it", "pt"]:
+        st.session_state["lang_code"] = qp_lang
+
 if "lang_code" not in st.session_state:
     st.session_state["lang_code"] = "es"
 
@@ -162,27 +167,38 @@ def t(key: str, **kwargs) -> str:
     """Helper rápido de traducción."""
     return get_text(current_lang, key, **kwargs)
 
-# BARRA SUPERIOR SUBTIL DE BANDERAS DE IDIOMA (TOPMOST)
-top_col_space, top_col_flags = st.columns([4, 4])
-with top_col_flags:
-    lang_items = [
-        ("es", "🇨🇴", "ES"),
-        ("en", "🇬🇧", "EN"),
-        ("fr", "🇫🇷", "FR"),
-        ("zh", "🇨🇳", "ZH"),
-        ("ko", "🇰🇷", "KO"),
-        ("it", "🇮🇹", "IT"),
-        ("pt", "🇧🇷", "PT"),
-    ]
-    flag_cols = st.columns(len(lang_items))
-    for idx, (lcode, flag, name) in enumerate(lang_items):
-        with flag_cols[idx]:
-            is_active = (current_lang == lcode)
-            btn_type = "primary" if is_active else "secondary"
-            if st.button(f"{flag} {name}", key=f"top_flag_{lcode}", type=btn_type, use_container_width=True):
-                if st.session_state["lang_code"] != lcode:
-                    st.session_state["lang_code"] = lcode
-                    st.rerun()
+# BARRA SUPERIOR SUBTIL Y ULTRA COMPACTA CON BANDERAS REALES
+lang_flags_config = [
+    ("es", "https://flagcdn.com/w40/co.png", "ES", "Español (Colombia)"),
+    ("en", "https://flagcdn.com/w40/gb.png", "EN", "English (UK)"),
+    ("fr", "https://flagcdn.com/w40/fr.png", "FR", "Français"),
+    ("zh", "https://flagcdn.com/w40/cn.png", "ZH", "中文"),
+    ("ko", "https://flagcdn.com/w40/kr.png", "KO", "한국어"),
+    ("it", "https://flagcdn.com/w40/it.png", "IT", "Italiano"),
+    ("pt", "https://flagcdn.com/w40/br.png", "PT", "Português (Brasil)"),
+]
+
+flags_html_items = []
+for code_name, flag_url, label_str, title_str in lang_flags_config:
+    is_active = (current_lang == code_name)
+    active_style = "border: 1px solid #3B82F6; background-color: #1E3A8A; box-shadow: 0 0 6px rgba(59, 130, 246, 0.5); color: #FFFFFF;" if is_active else "border: 1px solid #1E293B; background-color: #111827; color: #94A3B8;"
+    
+    item_html = f'''<a href="?lang={code_name}" target="_self" title="{title_str}" style="text-decoration: none;">
+        <div style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px; border-radius: 5px; font-size: 0.72rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; {active_style}">
+            <img src="{flag_url}" width="15" height="10" style="border-radius: 2px; object-fit: cover; vertical-align: middle;" alt="{code_name}"/>
+            <span>{label_str}</span>
+        </div>
+    </a>'''
+    flags_html_items.append(item_html)
+
+top_bar_html = f'''
+<div style="display: flex; justify-content: flex-end; align-items: center; gap: 5px; padding: 0px 0px 10px 0px; border-bottom: 1px solid #1E293B; margin-bottom: 15px;">
+    <span style="font-size: 0.70rem; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; margin-right: 4px;">🌐 Language:</span>
+    {''.join(flags_html_items)}
+</div>
+'''
+
+st.markdown(top_bar_html, unsafe_allow_html=True)
 
 
 # 4. Carga y Procesamiento de Datos ERCOT
