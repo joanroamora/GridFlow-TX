@@ -438,6 +438,7 @@ def render_live_analytics(current_lang: str, spp_df: pd.DataFrame, fuel_df: pd.D
                 paper_bgcolor="#0B0E14",
                 plot_bgcolor="#131927",
             )
+            fig_scatter = apply_plotly_time_controls(fig_scatter)
             st.plotly_chart(fig_scatter, use_container_width=True)
 
     elif active_view_key == "v4":

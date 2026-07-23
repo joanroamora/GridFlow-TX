@@ -410,7 +410,7 @@ def render_bess_intelligence(current_lang: str, spp_df: pd.DataFrame, fuel_df: p
             fcol1, fcol2 = st.columns([3, 2])
 
             with fcol1:
-                st.markdown("##### 📈 Curva de Ganancia Acumulada por Arbitraje ($)")
+                st.markdown(f"##### {t('chart_profit_curve')}")
                 fig_profit = px.line(
                     opt_df,
                     x="Time",
@@ -427,7 +427,7 @@ def render_bess_intelligence(current_lang: str, spp_df: pd.DataFrame, fuel_df: p
                 st.plotly_chart(fig_profit, use_container_width=True)
 
             with fcol2:
-                st.markdown("##### 📊 Desglose de Despachos BESS (Conteo de Intervalos)")
+                st.markdown(f"##### {t('chart_dispatch_breakdown')}")
                 action_counts = opt_df["Action"].value_counts().reset_index()
                 action_counts.columns = ["Action", "Count"]
 
@@ -450,7 +450,7 @@ def render_bess_intelligence(current_lang: str, spp_df: pd.DataFrame, fuel_df: p
             # Botón de Descarga CSV Financiero
             csv_opt = opt_df.to_csv(index=False).encode("utf-8")
             st.download_button(
-                label="📥 Exportar Simulación Financiera BESS (CSV)",
+                label=t("btn_export_csv"),
                 data=csv_opt,
                 file_name=f"bess_financial_arbitrage_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
                 mime="text/csv"

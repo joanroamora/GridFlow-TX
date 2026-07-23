@@ -126,7 +126,12 @@ TRANSLATIONS = {
         "dispatch_hold": "⏸️ MANTENER EN RESERVA (Estado Neutro)",
         "tab_arbitrage_curve": "📈 Curva de Optimización & SOC",
         "tab_ml_prediction": "🔮 Proyección de Precios & Demanda",
-        "tab_financial_summary": "💰 Desglose Financiero & ROI"
+        "tab_financial_summary": "💰 Desglose Financiero & ROI",
+        "chart_profit_curve": "📈 Curva de Ganancia Acumulada por Arbitraje ($)",
+        "chart_dispatch_breakdown": "📊 Desglose de Despachos BESS (Conteo de Intervalos)",
+        "btn_export_csv": "📥 Exportar Simulación Financiera BESS (CSV)",
+        "footer_created_by": "GridFlow-TX Enterprise Platform | Desarrollado por Joan Ricardo Roa Mora",
+        "footer_github": "Ver Código en GitHub"
     },
     "en": {
         "page_title": "⚡ GridFlow-TX | Real-Time ERCOT Telemetry & BESS Analytics",
@@ -251,7 +256,12 @@ TRANSLATIONS = {
         "dispatch_hold": "⏸️ HOLD / STANDBY (Neutral State)",
         "tab_arbitrage_curve": "📈 Optimization Curve & SOC",
         "tab_ml_prediction": "🔮 Price & Load Forecast",
-        "tab_financial_summary": "💰 Financial Breakdown & ROI"
+        "tab_financial_summary": "💰 Financial Breakdown & ROI",
+        "chart_profit_curve": "📈 Cumulative Arbitrage Profit Curve ($)",
+        "chart_dispatch_breakdown": "📊 BESS Dispatch Breakdown (Interval Count)",
+        "btn_export_csv": "📥 Export BESS Financial Simulation (CSV)",
+        "footer_created_by": "GridFlow-TX Enterprise Platform | Developed by Joan Ricardo Roa Mora",
+        "footer_github": "View Source Code on GitHub"
     },
     "fr": {
         "page_title": "⚡ GridFlow-TX | Télémétrie ERCOT et Analyse BESS en Temps Réel",
@@ -376,7 +386,12 @@ TRANSLATIONS = {
         "dispatch_hold": "⏸️ MAINTENIR EN RÉSERVE (État neutre)",
         "tab_arbitrage_curve": "📈 Courbe d'optimisation & SOC",
         "tab_ml_prediction": "🔮 Prévision des prix et de la demande",
-        "tab_financial_summary": "💰 Répartition financière et ROI"
+        "tab_financial_summary": "💰 Répartition financière et ROI",
+        "chart_profit_curve": "📈 Courbe de profit d'arbitrage cumulé ($)",
+        "chart_dispatch_breakdown": "📊 Répartition de la répartition BESS (Nombre d'intervalles)",
+        "btn_export_csv": "📥 Exporter la simulation financière BESS (CSV)",
+        "footer_created_by": "GridFlow-TX Enterprise Platform | Développé par Joan Ricardo Roa Mora",
+        "footer_github": "Voir le code sur GitHub"
     },
     "zh": {
         "page_title": "⚡ GridFlow-TX | 德州ERCOT实时遥测与BESS储能分析平台",
@@ -501,7 +516,12 @@ TRANSLATIONS = {
         "dispatch_hold": "⏸️ 保持备用 (中性状态)",
         "tab_arbitrage_curve": "📈 优化曲线与 SOC",
         "tab_ml_prediction": "🔮 价格与负荷预测",
-        "tab_financial_summary": "💰 财务明细与 ROI"
+        "tab_financial_summary": "💰 财务明细与 ROI",
+        "chart_profit_curve": "📈 累计套利利润曲线 ($)",
+        "chart_dispatch_breakdown": "📊 BESS 调度明细 (间隔计数)",
+        "btn_export_csv": "📥 导出 BESS 财务模拟 (CSV)",
+        "footer_created_by": "GridFlow-TX Enterprise Platform | 由 Joan Ricardo Roa Mora 开发",
+        "footer_github": "在 GitHub 上查看源码"
     },
     "ko": {
         "page_title": "⚡ GridFlow-TX | 실시간 ERCOT 텔레메트리 및 BESS 분석 플랫폼",
@@ -626,7 +646,12 @@ TRANSLATIONS = {
         "dispatch_hold": "⏸️ 대기 (중립 상태)",
         "tab_arbitrage_curve": "📈 최적화 곡선 및 SOC",
         "tab_ml_prediction": "🔮 가격 및 부하 예측",
-        "tab_financial_summary": "💰 재무 내역 및 ROI"
+        "tab_financial_summary": "💰 재무 내역 및 ROI",
+        "chart_profit_curve": "📈 누적 차익 이익 곡선 ($)",
+        "chart_dispatch_breakdown": "📊 BESS 급전 내역 (간격 수)",
+        "btn_export_csv": "📥 BESS 재무 시뮬레이션 내보내기 (CSV)",
+        "footer_created_by": "GridFlow-TX Enterprise Platform | Joan Ricardo Roa Mora 개발",
+        "footer_github": "GitHub에서 소스 코드 보기"
     },
     "it": {
         "page_title": "⚡ GridFlow-TX | Telemetria ERCOT in Tempo Reale & Analitica BESS",
@@ -751,7 +776,12 @@ TRANSLATIONS = {
         "dispatch_hold": "⏸️ MANTIENI IN RISERVA (Stato Neutro)",
         "tab_arbitrage_curve": "📈 Curva di Ottimizzazione & SOC",
         "tab_ml_prediction": "🔮 Previsione Prezzi e Domanda",
-        "tab_financial_summary": "💰 Dettaglio Finanziario e ROI"
+        "tab_financial_summary": "💰 Dettaglio Finanziario e ROI",
+        "chart_profit_curve": "📈 Curva del profitto di arbitraggio cumulativo ($)",
+        "chart_dispatch_breakdown": "📊 Dettaglio del dispacciamento BESS (Conteggio intervalli)",
+        "btn_export_csv": "📥 Esporta simulazione finanziaria BESS (CSV)",
+        "footer_created_by": "GridFlow-TX Enterprise Platform | Sviluppato da Joan Ricardo Roa Mora",
+        "footer_github": "Vedi il codice su GitHub"
     },
     "pt": {
         "page_title": "⚡ GridFlow-TX | Telemetria ERCOT em Tempo Real & Analítica BESS",
@@ -876,7 +906,12 @@ TRANSLATIONS = {
         "dispatch_hold": "⏸️ MANTER EM RESERVA (Estado Neutro)",
         "tab_arbitrage_curve": "📈 Curva de Otimização & SOC",
         "tab_ml_prediction": "🔮 Previsão de Preços e Demanda",
-        "tab_financial_summary": "💰 Detalhamento Financeiro e ROI"
+        "tab_financial_summary": "💰 Detalhamento Financeiro e ROI",
+        "chart_profit_curve": "📈 Curva de Lucro de Arbitragem Acumulado ($)",
+        "chart_dispatch_breakdown": "📊 Detalhamento de Despachos BESS (Contagem de Intervalos)",
+        "btn_export_csv": "📥 Exportar Simulação Financeira BESS (CSV)",
+        "footer_created_by": "GridFlow-TX Enterprise Platform | Desenvolvido por Joan Ricardo Roa Mora",
+        "footer_github": "Ver Código no GitHub"
     }
 }
 
