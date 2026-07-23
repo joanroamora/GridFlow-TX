@@ -3,12 +3,17 @@
   hosts: ec2_nodes
   become: yes
   tasks:
+    - name: Ensure docker group exists
+      group:
+        name: docker
+        state: present
+
     - name: Create application directory
       file:
         path: /opt/gridflow-tx
         state: directory
         owner: ec2-user
-        group: docker
+        group: ec2-user
         mode: '0775'
 
     - name: Copy project files to EC2
@@ -16,7 +21,7 @@
         src: "{{ item }}"
         dest: /opt/gridflow-tx/
         owner: ec2-user
-        group: docker
+        group: ec2-user
         mode: '0644'
       loop:
         - ../../app.py
@@ -31,7 +36,7 @@
         src: ../../services
         dest: /opt/gridflow-tx/
         owner: ec2-user
-        group: docker
+        group: ec2-user
         mode: '0755'
 
     - name: Build Docker image for GridFlow-TX Platform

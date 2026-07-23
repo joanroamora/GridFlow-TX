@@ -326,7 +326,7 @@ def render_bess_intelligence(current_lang: str, spp_df: pd.DataFrame, fuel_df: p
 
             fig_opt.update_layout(
                 template="plotly_dark",
-                height=520,
+                height=540,
                 margin=dict(l=20, r=20, t=30, b=20),
                 paper_bgcolor="#0B0E14",
                 plot_bgcolor="#131927",
@@ -334,6 +334,24 @@ def render_bess_intelligence(current_lang: str, spp_df: pd.DataFrame, fuel_df: p
                 yaxis=dict(title="LMP ($/MWh)", color="#FF4B4B"),
                 yaxis2=dict(title="BESS Power (MW)", overlaying="y", side="right", showgrid=False),
                 yaxis3=dict(title="SOC (%)", overlaying="y", side="right", position=0.95, range=[0, 105], showgrid=False)
+            )
+
+            fig_opt.update_xaxes(
+                rangeslider=dict(visible=True, thickness=0.08),
+                rangeselector=dict(
+                    buttons=list([
+                        dict(count=6, label="6h", step="hour", stepmode="backward"),
+                        dict(count=12, label="12h", step="hour", stepmode="backward"),
+                        dict(count=1, label="1d", step="day", stepmode="backward"),
+                        dict(count=3, label="3d", step="day", stepmode="backward"),
+                        dict(count=7, label="7d", step="day", stepmode="backward"),
+                        dict(count=30, label="30d", step="day", stepmode="backward"),
+                        dict(step="all", label="All")
+                    ]),
+                    font=dict(color="#E2E8F0", size=11),
+                    bgcolor="#1E293B",
+                    activecolor="#3B82F6"
+                )
             )
             st.plotly_chart(fig_opt, use_container_width=True)
 

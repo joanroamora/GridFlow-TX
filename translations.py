@@ -894,8 +894,8 @@ LANG_CODE_MAP = {v: k for k, v in LANG_OPTIONS.items()}
 
 
 def get_text(lang_code: str, key: str, **kwargs) -> str:
-    lang_dict = TRANSLATIONS.get(lang_code, TRANSLATIONS["es"])
-    val = lang_dict.get(key, TRANSLATIONS["es"].get(key, key))
+    lang_dict = TRANSLATIONS.get(lang_code, TRANSLATIONS["en"])
+    val = lang_dict.get(key, TRANSLATIONS["en"].get(key, key))
     if isinstance(val, str) and kwargs:
         try:
             return val.format(**kwargs)

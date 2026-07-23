@@ -35,64 +35,60 @@ st.markdown(
         color: #E2E8F0;
     }
     
-    /* Service Card Styling */
+    /* Service Card Styling (Minimalist & Sleek) */
     .service-card {
-        background: linear-gradient(145deg, #131B2E 0%, #1A233A 100%);
-        border-radius: 14px;
-        padding: 24px;
-        border: 1px solid #2A3655;
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-        margin-bottom: 20px;
-        transition: all 0.3s ease;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
+        background: linear-gradient(145deg, #111827 0%, #1E293B 100%);
+        border-radius: 10px;
+        padding: 16px 18px;
+        border: 1px solid #1E293B;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        margin-bottom: 12px;
+        transition: all 0.25s ease-in-out;
     }
     .service-card:hover {
         border-color: #38BDF8;
-        transform: translateY(-3px);
-        box-shadow: 0 10px 25px rgba(56, 189, 248, 0.15);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(56, 189, 248, 0.12);
     }
     .service-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 12px;
+        margin-bottom: 8px;
     }
     .service-title {
         color: #F8FAFC;
-        font-size: 1.25rem;
+        font-size: 1.05rem;
         font-weight: 700;
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 8px;
     }
     .service-desc {
         color: #94A3B8;
-        font-size: 0.92rem;
-        line-height: 1.6;
-        margin-bottom: 16px;
+        font-size: 0.85rem;
+        line-height: 1.5;
+        margin-bottom: 12px;
     }
     .status-badge {
-        font-size: 0.70rem;
+        font-size: 0.65rem;
         font-weight: 700;
-        padding: 3px 8px;
-        border-radius: 6px;
+        padding: 2px 6px;
+        border-radius: 4px;
         letter-spacing: 0.5px;
         text-transform: uppercase;
     }
     .tag-pill {
-        background-color: #1E293B;
+        background-color: #0F172A;
         color: #38BDF8;
-        border: 1px solid #334155;
-        border-radius: 6px;
-        padding: 2px 7px;
-        font-size: 0.75rem;
+        border: 1px solid #1E293B;
+        border-radius: 4px;
+        padding: 1px 6px;
+        font-size: 0.70rem;
         font-weight: 500;
         display: inline-block;
-        margin-right: 5px;
-        margin-bottom: 5px;
+        margin-right: 4px;
+        margin-bottom: 4px;
     }
     
     /* Top Subtle Language Selector Buttons */
@@ -166,7 +162,7 @@ if "lang" in st.query_params:
         st.session_state["lang_code"] = qp_lang
 
 if "lang_code" not in st.session_state:
-    st.session_state["lang_code"] = "es"
+    st.session_state["lang_code"] = "en"
 
 if "active_service" not in st.session_state:
     st.session_state["active_service"] = "hub"
