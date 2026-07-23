@@ -228,8 +228,11 @@ top_bar_html = f'''
 st.markdown(top_bar_html, unsafe_allow_html=True)
 
 
+from observability.telemetry_tracer import trace_span
+
 # 5. CARGA DE DATOS COMPARTIDA (SHARED TELEMETRY PIPELINE)
 @st.cache_data(ttl=120, show_spinner=False)
+@trace_span("load_ercot_telemetry_dataset")
 def load_ercot_telemetry_dataset():
     """Carga y procesa telemetría ERCOT (30 días de cobertura) para todos los microservicios."""
     iso = gridstatus.Ercot()

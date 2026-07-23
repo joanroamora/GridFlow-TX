@@ -13,10 +13,12 @@ from datetime import datetime, timedelta
 import logging
 
 from translations import get_text
+from observability.telemetry_tracer import trace_span
 
 logger = logging.getLogger("Live-Analytics-Service")
 
 
+@trace_span("render_live_analytics")
 def render_live_analytics(current_lang: str, spp_df: pd.DataFrame, fuel_df: pd.DataFrame, load_df: pd.DataFrame):
     """
     Renderiza la interfaz principal del microservicio GridFlow Live Analytics.

@@ -1,0 +1,46 @@
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: false
+    jsonData:
+      httpMethod: POST
+      timeInterval: 15s
+
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    editable: false
+    jsonData:
+      maxLines: 1000
+      derivedFields:
+        - name: TraceID
+          matcherRegex: "trace_id=([a-f0-9]+)"
+          url: "$${__value.raw}"
+          datasourceUid: Tempo
+
+  - name: Tempo
+    type: tempo
+    access: proxy
+    url: http://tempo:3200
+    editable: false
+    jsonData:
+      httpMethod: GET
+      tracesToLogsV2:
+        datasourceUid: Loki
+        spanStartTimeShift: "-1h"
+        spanEndTimeShift: "1h"
+        tags: ["job", "instance", "container_name"]
+        filterByTraceID: true
+        filterBySpanID: false
+      tracesToMetrics:
+        datasourceUid: Prometheus
+        tags: [{ key: "service.name", value: "service" }]
+        queries:
+          - name: "Latency P90"
+            query: "histogram_quantile(0.90, sum(rate(gridflow_request_duration_seconds_bucket[5m])) by (le))"

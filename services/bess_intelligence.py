@@ -16,10 +16,12 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import make_pipeline
 
 from translations import get_text
+from observability.telemetry_tracer import trace_span
 
 logger = logging.getLogger("BESS-Intelligence-Hub")
 
 
+@trace_span("run_bess_arbitrage_optimization")
 def run_bess_arbitrage_optimization(
     spp_df: pd.DataFrame,
     capacity_mwh: float = 100.0,
@@ -95,6 +97,7 @@ def run_bess_arbitrage_optimization(
     return df
 
 
+@trace_span("train_ml_short_term_forecast")
 def train_ml_short_term_forecast(spp_df: pd.DataFrame, load_df: pd.DataFrame = None, horizon_hours: int = 8) -> pd.DataFrame:
     """
     Modelo de Machine Learning en series temporales para predecir LMP y Demanda ERCOT

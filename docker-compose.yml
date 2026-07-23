@@ -1,13 +1,105 @@
 version: '3.8'
 
 services:
-  gridflow-gui:
-    build:
-      context: .
-      dockerfile: Dockerfile
+  app:
+    image: gridflow-gui
     container_name: gridflow-dashboard
-    restart: unless-stopped
     ports:
       - "8501:8501"
+    restart: unless-stopped
     environment:
-      - PYTHONUNBUFFERED=1
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4318
+    networks:
+      - gridflow-network
+
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: gridflow-grafana
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    volumes:
+      - ./observability/grafana/datasources:/etc/grafana/provisioning/datasources
+      - ./observability/grafana/dashboards:/etc/grafana/provisioning/dashboards
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    networks:
+      - gridflow-network
+
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: gridflow-prometheus
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - gridflow-network
+
+  loki:
+    image: grafana/loki:2.9.2
+    container_name: gridflow-loki
+    ports:
+      - "3100:3100"
+    restart: unless-stopped
+    volumes:
+      - ./observability/loki/loki-config.yml:/etc/loki/loki-config.yml
+    command: -config.file=/etc/loki/loki-config.yml
+    networks:
+      - gridflow-network
+
+  promtail:
+    image: grafana/promtail:2.9.2
+    container_name: gridflow-promtail
+    restart: unless-stopped
+    volumes:
+      - /var/log:/var/log:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./observability/promtail/promtail-config.yml:/etc/promtail/promtail-config.yml
+    command: -config.file=/etc/promtail/promtail-config.yml
+    networks:
+      - gridflow-network
+
+  tempo:
+    image: grafana/tempo:2.3.1
+    container_name: gridflow-tempo
+    ports:
+      - "3200:3200"
+      - "4317:4317"
+      - "4318:4318"
+    restart: unless-stopped
+    volumes:
+      - ./observability/tempo/tempo-config.yml:/etc/tempo/tempo-config.yml
+    command: -config.file=/etc/tempo/tempo-config.yml
+    networks:
+      - gridflow-network
+
+  node-exporter:
+    image: prom/node-exporter:v1.7.0
+    container_name: gridflow-node-exporter
+    ports:
+      - "9100:9100"
+    restart: unless-stopped
+    networks:
+      - gridflow-network
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.2
+    container_name: gridflow-cadvisor
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - gridflow-network
+
+networks:
+  gridflow-network:
+    driver: bridge
