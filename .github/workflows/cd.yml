@@ -1,0 +1,95 @@
+name: CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  terraform-cd:
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+    outputs:
+      ec2_public_ip: ${{ steps.tf_output.outputs.ec2_public_ip }}
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+
+      - name: Get EC2 Public IP Output
+        id: tf_output
+        run: echo "ec2_public_ip=$(terraform output -raw ec2_public_ip)" >> $GITHUB_OUTPUT
+
+  ansible-setup:
+    name: Ansible Configuration Management
+    needs: terraform-cd
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Ansible
+        run: pip install ansible
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      - name: Create Dynamic Ansible Inventory
+        run: |
+          cat <<EOF > ansible/inventory.ini
+          [ec2_nodes]
+          ec2-app-node ansible_host=${{ needs.terraform-cd.outputs.ec2_public_ip }} ansible_user=ec2-user ansible_ssh_private_key_file=~/.ssh/id_rsa
+          EOF
+
+      - name: Run Ansible Setup Playbook
+        run: |
+          ansible-playbook -i ansible/inventory.ini ansible/playbooks/setup-node.yml
+
+  deploy-app:
+    name: Build & Deploy Docker Application
+    needs: [terraform-cd, ansible-setup]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ needs.terraform-cd.outputs.ec2_public_ip }} >> ~/.ssh/known_hosts
+
+      - name: Deploy Container via SSH & Docker Compose
+        run: |
+          ssh ec2-user@${{ needs.terraform-cd.outputs.ec2_public_ip }} "mkdir -p ~/gridflow-app"
+          scp docker-compose.yml Dockerfile requirements.txt dashboard.py ec2-user@${{ needs.terraform-cd.outputs.ec2_public_ip }}:~/gridflow-app/
+          ssh ec2-user@${{ needs.terraform-cd.outputs.ec2_public_ip }} "cd ~/gridflow-app && docker-compose up -d --build"

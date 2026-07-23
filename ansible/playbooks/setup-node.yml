@@ -1,0 +1,44 @@
+---
+- name: Setup and Configure EC2 Node for GridFlow-TX
+  hosts: ec2_nodes
+  become: yes
+  tasks:
+    - name: Update system packages
+      dnf:
+        name: "*"
+        state: latest
+        update_cache: yes
+
+    - name: Install Git, Docker, and Docker Compose plugin
+      dnf:
+        name:
+          - git
+          - docker
+        state: present
+
+    - name: Install Docker Compose plugin binary
+      get_url:
+        url: "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64"
+        dest: /usr/local/bin/docker-compose
+        mode: '0755'
+
+    - name: Enable and start Docker service
+      systemd:
+        name: docker
+        enabled: yes
+        state: started
+
+    - name: Add user ec2-user to docker group
+      user:
+        name: ec2-user
+        groups: docker
+        append: yes
+
+    - name: Verify Docker installation
+      command: docker --version
+      register: docker_version
+      changed_when: false
+
+    - name: Display Docker version
+      debug:
+        msg: "Docker is successfully installed: {{ docker_version.stdout }}"
