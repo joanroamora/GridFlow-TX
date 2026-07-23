@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - Feature2
+      - Feature3
       - staging
   workflow_dispatch:
     inputs:

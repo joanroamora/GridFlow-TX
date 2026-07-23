@@ -33,7 +33,7 @@ TRANSLATIONS = {
             "v2": "📊 Volatilidad de Precios (LMP)",
             "v3": "🎯 Matriz de Arbitraje (Scatter)",
             "v4": "⚡ Mezcla de Generación (Fuel Mix)",
-            "v5": "📉 Demanda del Sistema (Load)"
+            "v5": "📉 Demanda del Sistema (Load)",
         },
         "time_control_header": "⏱️ Objeto de Control Temporal Dinámico",
         "time_preset_label": "Ventana de Tiempo Predefinida:",
@@ -46,7 +46,7 @@ TRANSLATIONS = {
             "14d": "🗓️ 2 Semanas (14d)",
             "30d": "📊 1 Mes (30d)",
             "all": "🌐 Histórico Completo",
-            "custom": "🛠️ Rango Personalizado"
+            "custom": "🛠️ Rango Personalizado",
         },
         "time_range_slider": "Rango Horario Dinámico (Inicio - Fin):",
         "resample_label": "Agregación / Frecuencia Temporal:",
@@ -56,7 +56,7 @@ TRANSLATIONS = {
             "30m": "Promedio 30 Minutos",
             "1h": "Promedio 1 Hora",
             "6h": "Promedio 6 Horas",
-            "1d": "Promedio Diario (1 Día)"
+            "1d": "Promedio Diario (1 Día)",
         },
         "chart_style_label": "Estilo Visual de BESS:",
         "chart_style_fill": "Área Sombreada (Fill)",
@@ -95,7 +95,7 @@ TRANSLATIONS = {
             "Nuclear": "Nuclear",
             "Hydro": "Hidroeléctrica",
             "Power Storage": "Almacenamiento (BESS)",
-            "Other": "Otros"
+            "Other": "Otros",
         },
         "gateway_title": "⚡ GridFlow-TX | Gateway & Platform Hub",
         "gateway_subtitle": "Plataforma Integrada de Microservicios para el Mercado Nodal de Texas y Almacenamiento Energético (ERCOT BESS)",
@@ -138,7 +138,7 @@ TRANSLATIONS = {
         "btn_export_ml_csv": "📥 Exportar Tabla de Predicciones ML ({horizon}h CSV)",
         "metric_pred_peak_lmp": "Precio Pico Predicho ML",
         "metric_pred_min_lmp": "Precio Mínimo Predicho ML",
-        "metric_pred_avg_demand": "Demanda Promedio Estimada"
+        "metric_pred_avg_demand": "Demanda Promedio Estimada",
     },
     "en": {
         "page_title": "⚡ GridFlow-TX | Real-Time ERCOT Telemetry & BESS Analytics",
@@ -170,7 +170,7 @@ TRANSLATIONS = {
             "v2": "📊 Price Volatility (LMP)",
             "v3": "🎯 Arbitrage Matrix (Scatter)",
             "v4": "⚡ Generation Fuel Mix",
-            "v5": "📉 System Demand (Load)"
+            "v5": "📉 System Demand (Load)",
         },
         "time_control_header": "⏱️ Dynamic Time Control Object",
         "time_preset_label": "Predefined Time Window:",
@@ -183,7 +183,7 @@ TRANSLATIONS = {
             "14d": "🗓️ 2 Weeks (14d)",
             "30d": "📊 1 Month (30d)",
             "all": "🌐 Full History",
-            "custom": "🛠️ Custom Range"
+            "custom": "🛠️ Custom Range",
         },
         "time_range_slider": "Dynamic Time Range (Start - End):",
         "resample_label": "Aggregation / Time Frequency:",
@@ -193,7 +193,7 @@ TRANSLATIONS = {
             "30m": "30 Minute Average",
             "1h": "1 Hour Average",
             "6h": "6 Hour Average",
-            "1d": "Daily Average (1 Day)"
+            "1d": "Daily Average (1 Day)",
         },
         "chart_style_label": "BESS Visual Style:",
         "chart_style_fill": "Shaded Area (Fill)",
@@ -232,7 +232,7 @@ TRANSLATIONS = {
             "Nuclear": "Nuclear",
             "Hydro": "Hydroelectric",
             "Power Storage": "Storage (BESS)",
-            "Other": "Other"
+            "Other": "Other",
         },
         "gateway_title": "⚡ GridFlow-TX | Gateway & Platform Hub",
         "gateway_subtitle": "Integrated Microservice Platform for Texas Nodal Energy Market & Battery Storage (ERCOT BESS)",
@@ -275,7 +275,7 @@ TRANSLATIONS = {
         "btn_export_ml_csv": "📥 Export ML Prediction Table ({horizon}h CSV)",
         "metric_pred_peak_lmp": "ML Predicted Peak Price",
         "metric_pred_min_lmp": "ML Predicted Min Price",
-        "metric_pred_avg_demand": "Estimated Average Demand"
+        "metric_pred_avg_demand": "Estimated Average Demand",
     },
     "fr": {
         "page_title": "⚡ GridFlow-TX | Télémétrie ERCOT et Analyse BESS en Temps Réel",
@@ -307,7 +307,7 @@ TRANSLATIONS = {
             "v2": "📊 Volatilité des Prix (LMP)",
             "v3": "🎯 Matrice d'Arbitrage (Scatter)",
             "v4": "⚡ Mix de Génération (Fuel Mix)",
-            "v5": "📉 Demanda du Système (Load)"
+            "v5": "📉 Demanda du Système (Load)",
         },
         "time_control_header": "⏱️ Objet de Contrôle Temporel Dynamique",
         "time_preset_label": "Fenêtre Temporelle Prédéfinie:",
@@ -320,7 +320,7 @@ TRANSLATIONS = {
             "14d": "🗓️ 2 Semaines (14d)",
             "30d": "📊 1 Mois (30d)",
             "all": "🌐 Historique Complet",
-            "custom": "🛠️ Plage Personnalisée"
+            "custom": "🛠️ Plage Personnalisée",
         },
         "time_range_slider": "Plage Horaire Dynamique (Début - Fin):",
         "resample_label": "Agrégation Temporelle:",
@@ -330,7 +330,7 @@ TRANSLATIONS = {
             "30m": "Moyenne 30 Minutes",
             "1h": "Moyenne 1 Heure",
             "6h": "Moyenne 6 Heures",
-            "1d": "Moyenne Quotidienne (1 Jour)"
+            "1d": "Moyenne Quotidienne (1 Jour)",
         },
         "chart_style_label": "Style Visuel BESS:",
         "chart_style_fill": "Zone Ombragée (Fill)",
@@ -369,7 +369,7 @@ TRANSLATIONS = {
             "Nuclear": "Nucléaire",
             "Hydro": "Hydroélectricité",
             "Power Storage": "Stockage (BESS)",
-            "Other": "Autre"
+            "Other": "Autre",
         },
         "gateway_title": "⚡ GridFlow-TX | Gateway & Platform Hub",
         "gateway_subtitle": "Plateforme intégrée de microservices pour le marché de l'énergie du Texas (ERCOT BESS)",
@@ -412,7 +412,7 @@ TRANSLATIONS = {
         "btn_export_ml_csv": "📥 Exporter le tableau de prédiction ML (CSV {horizon}h)",
         "metric_pred_peak_lmp": "Prix de pic prédit ML",
         "metric_pred_min_lmp": "Prix min prédit ML",
-        "metric_pred_avg_demand": "Demande moyenne estimée"
+        "metric_pred_avg_demand": "Demande moyenne estimée",
     },
     "zh": {
         "page_title": "⚡ GridFlow-TX | 德州ERCOT实时遥测与BESS储能分析平台",
@@ -444,7 +444,7 @@ TRANSLATIONS = {
             "v2": "📊 价格波动分析 (LMP)",
             "v3": "🎯 套利矩阵分析 (散点图)",
             "v4": "⚡ 发电能源结构 (Fuel Mix)",
-            "v5": "📉 电网总负荷需求 (Load)"
+            "v5": "📉 电网总负荷需求 (Load)",
         },
         "time_control_header": "⏱️ 动态时间控制对象与时间窗口",
         "time_preset_label": "预设时间窗口：",
@@ -457,7 +457,7 @@ TRANSLATIONS = {
             "14d": "🗓️ 2 周 (14天)",
             "30d": "📊 1 个月 (30天)",
             "all": "🌐 全部历史",
-            "custom": "🛠️ 自定义范围"
+            "custom": "🛠️ 自定义范围",
         },
         "time_range_slider": "动态时间选择 (开始 - 结束)：",
         "resample_label": "数据聚合 / 采样频率：",
@@ -467,7 +467,7 @@ TRANSLATIONS = {
             "30m": "30 分钟均值",
             "1h": "1 小时均值",
             "6h": "6 小时均值",
-            "1d": "每日均值 (1天)"
+            "1d": "每日均值 (1天)",
         },
         "chart_style_label": "BESS显示样式：",
         "chart_style_fill": "阴影填充 (Fill)",
@@ -506,7 +506,7 @@ TRANSLATIONS = {
             "Nuclear": "核能",
             "Hydro": "水力发电",
             "Power Storage": "储能系统(BESS)",
-            "Other": "其他"
+            "Other": "其他",
         },
         "gateway_title": "⚡ GridFlow-TX | Gateway & Platform Hub",
         "gateway_subtitle": "德克萨斯州节点能源市场与电池储能集成微服务平台 (ERCOT BESS)",
@@ -549,7 +549,7 @@ TRANSLATIONS = {
         "btn_export_ml_csv": "📥 导出 ML 预测数据表 ({horizon}小时 CSV)",
         "metric_pred_peak_lmp": "ML 预测峰值价格",
         "metric_pred_min_lmp": "ML 预测最低价格",
-        "metric_pred_avg_demand": "预计平均需求"
+        "metric_pred_avg_demand": "预计平均需求",
     },
     "ko": {
         "page_title": "⚡ GridFlow-TX | 실시간 ERCOT 텔레메트리 및 BESS 분석 플랫폼",
@@ -581,7 +581,7 @@ TRANSLATIONS = {
             "v2": "📊 가격 변동성 분석 (LMP)",
             "v3": "🎯 차익거래 매트릭스 (산점도)",
             "v4": "⚡ 발전 믹스 (Fuel Mix)",
-            "v5": "📉 전력망 수요 (Load)"
+            "v5": "📉 전력망 수요 (Load)",
         },
         "time_control_header": "⏱️ 동적 시간 제어 객체 및 차트 범위",
         "time_preset_label": "사전 정의된 시간 창:",
@@ -594,7 +594,7 @@ TRANSLATIONS = {
             "14d": "🗓️ 2주일 (14일)",
             "30d": "📊 1개월 (30일)",
             "all": "🌐 전체 기록",
-            "custom": "🛠️ 사용자 지정"
+            "custom": "🛠️ 사용자 지정",
         },
         "time_range_slider": "동적 시간 범위 (시작 - 종료):",
         "resample_label": "시간 데이터 집계 주기:",
@@ -604,7 +604,7 @@ TRANSLATIONS = {
             "30m": "30분 평균",
             "1h": "1시간 평균",
             "6h": "6시간 평균",
-            "1d": "일일 평균 (1일)"
+            "1d": "일일 평균 (1일)",
         },
         "chart_style_label": "BESS 시각화 스타일:",
         "chart_style_fill": "영역 채우기 (Fill)",
@@ -643,7 +643,7 @@ TRANSLATIONS = {
             "Nuclear": "원자력",
             "Hydro": "수력",
             "Power Storage": "BESS 배터리",
-            "Other": "기타"
+            "Other": "기타",
         },
         "gateway_title": "⚡ GridFlow-TX | Gateway & Platform Hub",
         "gateway_subtitle": "텍사스 노달 에너지 시장 및 배터리 저장 통합 마이크로서비스 플랫폼 (ERCOT BESS)",
@@ -686,7 +686,7 @@ TRANSLATIONS = {
         "btn_export_ml_csv": "📥 ML 예측 데이터 표 내보내기 ({horizon}시간 CSV)",
         "metric_pred_peak_lmp": "ML 예측 피크 가격",
         "metric_pred_min_lmp": "ML 예측 최저 가격",
-        "metric_pred_avg_demand": "예상 평균 수요"
+        "metric_pred_avg_demand": "예상 평균 수요",
     },
     "it": {
         "page_title": "⚡ GridFlow-TX | Telemetria ERCOT in Tempo Reale & Analitica BESS",
@@ -718,7 +718,7 @@ TRANSLATIONS = {
             "v2": "📊 Volatilità dei Prezzi (LMP)",
             "v3": "🎯 Matrice di Arbitraggio (Scatter)",
             "v4": "⚡ Mix di Generazione (Fuel Mix)",
-            "v5": "📉 Domanda del Sistema (Load)"
+            "v5": "📉 Domanda del Sistema (Load)",
         },
         "time_control_header": "⏱️ Oggetto di Controllo Temporale Dinamico",
         "time_preset_label": "Finestra Temporale Predefinita:",
@@ -731,7 +731,7 @@ TRANSLATIONS = {
             "14d": "🗓️ 2 Settimane (14g)",
             "30d": "📊 1 Mese (30g)",
             "all": "🌐 Cronologia Completa",
-            "custom": "🛠️ Intervallo Personalizzato"
+            "custom": "🛠️ Intervallo Personalizzato",
         },
         "time_range_slider": "Intervallo Orario Dinamico (Inizio - Fine):",
         "resample_label": "Aggregazione Temporale:",
@@ -741,7 +741,7 @@ TRANSLATIONS = {
             "30m": "Media 30 Minuti",
             "1h": "Media 1 Ora",
             "6h": "Media 6 Ore",
-            "1d": "Media Giornaliera (1 Giorno)"
+            "1d": "Media Giornaliera (1 Giorno)",
         },
         "chart_style_label": "Stile Visuale BESS:",
         "chart_style_fill": "Area Ombreggiata (Fill)",
@@ -780,7 +780,7 @@ TRANSLATIONS = {
             "Nuclear": "Nucleare",
             "Hydro": "Idroelettrico",
             "Power Storage": "Accumulo (BESS)",
-            "Other": "Altro"
+            "Other": "Altro",
         },
         "gateway_title": "⚡ GridFlow-TX | Gateway & Platform Hub",
         "gateway_subtitle": "Piattaforma integrata di microservizi per il mercato energetico del Texas (ERCOT BESS)",
@@ -823,7 +823,7 @@ TRANSLATIONS = {
         "btn_export_ml_csv": "📥 Esporta tabella previsioni ML (CSV {horizon}h)",
         "metric_pred_peak_lmp": "Prezzo di picco previsto ML",
         "metric_pred_min_lmp": "Prezzo minimo previsto ML",
-        "metric_pred_avg_demand": "Domanda media stimata"
+        "metric_pred_avg_demand": "Domanda media stimata",
     },
     "pt": {
         "page_title": "⚡ GridFlow-TX | Telemetria ERCOT em Tempo Real & Analítica BESS",
@@ -855,7 +855,7 @@ TRANSLATIONS = {
             "v2": "📊 Volatilidade de Preços (LMP)",
             "v3": "🎯 Matriz de Arbitragem (Scatter)",
             "v4": "⚡ Mix de Geração (Fuel Mix)",
-            "v5": "📉 Demanda do Sistema (Load)"
+            "v5": "📉 Demanda do Sistema (Load)",
         },
         "time_control_header": "⏱️ Objeto de Controle Temporal Dinâmico",
         "time_preset_label": "Janela de Tempo Predefinida:",
@@ -868,7 +868,7 @@ TRANSLATIONS = {
             "14d": "🗓️ 2 Semanas (14d)",
             "30d": "📊 1 Mês (30d)",
             "all": "🌐 Histórico Completo",
-            "custom": "🛠️ Intervalo Personalizado"
+            "custom": "🛠️ Intervalo Personalizado",
         },
         "time_range_slider": "Intervalo Horário Dinâmico (Início - Fim):",
         "resample_label": "Agregação Temporativa:",
@@ -878,7 +878,7 @@ TRANSLATIONS = {
             "30m": "Média 30 Minutos",
             "1h": "Média 1 Hora",
             "6h": "Média 6 Horas",
-            "1d": "Média Diária (1 Dia)"
+            "1d": "Média Diária (1 Dia)",
         },
         "chart_style_label": "Estilo Visual BESS:",
         "chart_style_fill": "Área Sombreada (Fill)",
@@ -917,7 +917,7 @@ TRANSLATIONS = {
             "Nuclear": "Nuclear",
             "Hydro": "Hidrelétrica",
             "Power Storage": "Armazenamento (BESS)",
-            "Other": "Outros"
+            "Other": "Outros",
         },
         "gateway_title": "⚡ GridFlow-TX | Gateway & Platform Hub",
         "gateway_subtitle": "Plataforma integrada de microsserviços para o mercado de energia do Texas (ERCOT BESS)",
@@ -960,8 +960,8 @@ TRANSLATIONS = {
         "btn_export_ml_csv": "📥 Exportar Tabela de Previsão ML (CSV {horizon}h)",
         "metric_pred_peak_lmp": "Preço de Pico Previsto ML",
         "metric_pred_min_lmp": "Preço Mínimo Previsto ML",
-        "metric_pred_avg_demand": "Demanda Média Estimada"
-    }
+        "metric_pred_avg_demand": "Demanda Média Estimada",
+    },
 }
 
 LANG_OPTIONS = {
@@ -971,7 +971,7 @@ LANG_OPTIONS = {
     "zh": "🇨🇳 中文",
     "ko": "🇰🇷 한국어",
     "it": "🇮🇹 Italiano",
-    "pt": "🇧🇷 Português"
+    "pt": "🇧🇷 Português",
 }
 
 LANG_CODE_MAP = {v: k for k, v in LANG_OPTIONS.items()}

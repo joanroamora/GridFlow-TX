@@ -19,10 +19,16 @@ logger = logging.getLogger("Live-Analytics-Service")
 
 
 @trace_span("render_live_analytics")
-def render_live_analytics(current_lang: str, spp_df: pd.DataFrame, fuel_df: pd.DataFrame, load_df: pd.DataFrame):
+def render_live_analytics(
+    current_lang: str,
+    spp_df: pd.DataFrame,
+    fuel_df: pd.DataFrame,
+    load_df: pd.DataFrame,
+):
     """
     Renderiza la interfaz principal del microservicio GridFlow Live Analytics.
     """
+
     def t(key: str, **kwargs) -> str:
         return get_text(current_lang, key, **kwargs)
 
@@ -35,7 +41,7 @@ def render_live_analytics(current_lang: str, spp_df: pd.DataFrame, fuel_df: pd.D
         max_value=5000.0,
         value=100.0,
         step=10.0,
-        help=t("alert_threshold_help")
+        help=t("alert_threshold_help"),
     )
 
     st.sidebar.markdown("---")
@@ -53,8 +59,16 @@ def render_live_analytics(current_lang: str, spp_df: pd.DataFrame, fuel_df: pd.D
     prev_lmp = float(spp_df["LMP"].iloc[-2]) if len(spp_df) > 1 else latest_lmp
     lmp_delta = latest_lmp - prev_lmp
 
-    latest_bess = float(fuel_df["Power Storage"].iloc[-1]) if "Power Storage" in fuel_df.columns else 0.0
-    prev_bess = float(fuel_df["Power Storage"].iloc[-2]) if len(fuel_df) > 1 and "Power Storage" in fuel_df.columns else latest_bess
+    latest_bess = (
+        float(fuel_df["Power Storage"].iloc[-1])
+        if "Power Storage" in fuel_df.columns
+        else 0.0
+    )
+    prev_bess = (
+        float(fuel_df["Power Storage"].iloc[-2])
+        if len(fuel_df) > 1 and "Power Storage" in fuel_df.columns
+        else latest_bess
+    )
     bess_delta = latest_bess - prev_bess
 
     max_lmp_today = float(spp_df["LMP"].max()) if not spp_df.empty else 0.0
@@ -104,7 +118,11 @@ def render_live_analytics(current_lang: str, spp_df: pd.DataFrame, fuel_df: pd.D
         bess_status_str = (
             t("bess_status_discharging")
             if latest_bess > 50
-            else (t("bess_status_charging") if latest_bess < -50 else t("bess_status_neutral"))
+            else (
+                t("bess_status_charging")
+                if latest_bess < -50
+                else t("bess_status_neutral")
+            )
         )
         st.markdown(
             f"""
@@ -163,7 +181,7 @@ def render_live_analytics(current_lang: str, spp_df: pd.DataFrame, fuel_df: pd.D
         <div class="time-control-card">
             <div class="time-control-title">{t('time_control_header')}</div>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
     tc_col1, tc_col2, tc_col3 = st.columns([2, 3, 2])
@@ -172,17 +190,21 @@ def render_live_analytics(current_lang: str, spp_df: pd.DataFrame, fuel_df: pd.D
         preset_dict = t("time_presets")
         preset_keys = list(preset_dict.keys())
         preset_labels = [preset_dict[k] for k in preset_keys]
-        
+
         selected_preset_label = st.selectbox(
             t("time_preset_label"),
             options=preset_labels,
             index=0,
-            key="time_preset_selectbox"
+            key="time_preset_selectbox",
         )
         active_preset = preset_keys[preset_labels.index(selected_preset_label)]
 
     with tc_col2:
-        min_time_val = spp_df["Time"].min() if not spp_df.empty else datetime.now() - timedelta(hours=24)
+        min_time_val = (
+            spp_df["Time"].min()
+            if not spp_df.empty
+            else datetime.now() - timedelta(hours=24)
+        )
         max_time_val = spp_df["Time"].max() if not spp_df.empty else datetime.now()
 
         if active_preset == "custom":
@@ -192,30 +214,34 @@ def render_live_analytics(current_lang: str, spp_df: pd.DataFrame, fuel_df: pd.D
                 max_value=max_time_val.to_pydatetime(),
                 value=(min_time_val.to_pydatetime(), max_time_val.to_pydatetime()),
                 format="HH:mm",
-                key="custom_time_slider"
+                key="custom_time_slider",
             )
             custom_start, custom_end = time_range[0], time_range[1]
         else:
             custom_start, custom_end = None, None
-            st.info(f"📅 Window: {min_time_val.strftime('%H:%M')} ➔ {max_time_val.strftime('%H:%M')} (US/Central)")
+            st.info(
+                f"📅 Window: {min_time_val.strftime('%H:%M')} ➔ {max_time_val.strftime('%H:%M')} (US/Central)"
+            )
 
     with tc_col3:
         resample_dict = t("resample_options")
         resample_keys = list(resample_dict.keys())
         resample_labels = [resample_dict[k] for k in resample_keys]
-        
+
         selected_resample_label = st.selectbox(
             t("resample_label"),
             options=resample_labels,
             index=0,
-            key="resample_selectbox"
+            key="resample_selectbox",
         )
         active_resample = resample_keys[resample_labels.index(selected_resample_label)]
 
     st.markdown("</div>", unsafe_allow_html=True)
 
     # Filtrado Supeditado
-    def filter_and_resample_dataset(df, time_col="Time", preset="all", start_t=None, end_t=None, resample_freq="raw"):
+    def filter_and_resample_dataset(
+        df, time_col="Time", preset="all", start_t=None, end_t=None, resample_freq="raw"
+    ):
         if df.empty or time_col not in df.columns:
             return df.copy()
 
@@ -244,24 +270,45 @@ def render_live_analytics(current_lang: str, spp_df: pd.DataFrame, fuel_df: pd.D
             cutoff = max_t - timedelta(days=30)
             fdf = fdf[fdf[time_col] >= cutoff]
         elif preset == "custom" and start_t and end_t:
-            fdf = fdf[(fdf[time_col] >= pd.to_datetime(start_t)) & (fdf[time_col] <= pd.to_datetime(end_t))]
+            fdf = fdf[
+                (fdf[time_col] >= pd.to_datetime(start_t))
+                & (fdf[time_col] <= pd.to_datetime(end_t))
+            ]
 
         if fdf.empty:
             fdf = df.copy()
 
         if resample_freq != "raw":
-            rule_map = {"15m": "15min", "30m": "30min", "1h": "1h", "6h": "6h", "1d": "1D"}
+            rule_map = {
+                "15m": "15min",
+                "30m": "30min",
+                "1h": "1h",
+                "6h": "6h",
+                "1d": "1D",
+            }
             rule = rule_map.get(resample_freq)
             if rule:
                 num_cols = fdf.select_dtypes(include=[np.number]).columns
-                resampled = fdf.set_index(time_col)[num_cols].resample(rule).mean().dropna().reset_index()
+                resampled = (
+                    fdf.set_index(time_col)[num_cols]
+                    .resample(rule)
+                    .mean()
+                    .dropna()
+                    .reset_index()
+                )
                 fdf = resampled
 
         return fdf.sort_values(time_col).reset_index(drop=True)
 
-    spp_filtered = filter_and_resample_dataset(spp_df, "Time", active_preset, custom_start, custom_end, active_resample)
-    fuel_filtered = filter_and_resample_dataset(fuel_df, "Time", active_preset, custom_start, custom_end, active_resample)
-    load_filtered = filter_and_resample_dataset(load_df, "Time", active_preset, custom_start, custom_end, active_resample)
+    spp_filtered = filter_and_resample_dataset(
+        spp_df, "Time", active_preset, custom_start, custom_end, active_resample
+    )
+    fuel_filtered = filter_and_resample_dataset(
+        fuel_df, "Time", active_preset, custom_start, custom_end, active_resample
+    )
+    load_filtered = filter_and_resample_dataset(
+        load_df, "Time", active_preset, custom_start, custom_end, active_resample
+    )
 
     # 4. SELECCIÓN DE VISTA DE GRÁFICO
     st.subheader(t("nav_header"))
@@ -287,19 +334,21 @@ def render_live_analytics(current_lang: str, spp_df: pd.DataFrame, fuel_df: pd.D
         fig.update_xaxes(
             rangeslider=dict(visible=True, thickness=0.08),
             rangeselector=dict(
-                buttons=list([
-                    dict(count=6, label="6h", step="hour", stepmode="backward"),
-                    dict(count=12, label="12h", step="hour", stepmode="backward"),
-                    dict(count=1, label="1d", step="day", stepmode="backward"),
-                    dict(count=3, label="3d", step="day", stepmode="backward"),
-                    dict(count=7, label="7d", step="day", stepmode="backward"),
-                    dict(count=30, label="30d", step="day", stepmode="backward"),
-                    dict(step="all", label="All")
-                ]),
+                buttons=list(
+                    [
+                        dict(count=6, label="6h", step="hour", stepmode="backward"),
+                        dict(count=12, label="12h", step="hour", stepmode="backward"),
+                        dict(count=1, label="1d", step="day", stepmode="backward"),
+                        dict(count=3, label="3d", step="day", stepmode="backward"),
+                        dict(count=7, label="7d", step="day", stepmode="backward"),
+                        dict(count=30, label="30d", step="day", stepmode="backward"),
+                        dict(step="all", label="All"),
+                    ]
+                ),
                 font=dict(color="#E2E8F0", size=11),
                 bgcolor="#1E293B",
-                activecolor="#3B82F6"
-            )
+                activecolor="#3B82F6",
+            ),
         )
         return fig
 
@@ -312,7 +361,7 @@ def render_live_analytics(current_lang: str, spp_df: pd.DataFrame, fuel_df: pd.D
             chart_style = st.selectbox(
                 t("chart_style_label"),
                 [t("chart_style_fill"), t("chart_style_line")],
-                index=0
+                index=0,
             )
 
         fig = make_subplots(specs=[[{"secondary_y": True}]])
@@ -359,12 +408,24 @@ def render_live_analytics(current_lang: str, spp_df: pd.DataFrame, fuel_df: pd.D
             margin=dict(l=20, r=20, t=40, b=20),
             paper_bgcolor="#0B0E14",
             plot_bgcolor="#131927",
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+            legend=dict(
+                orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1
+            ),
             hovermode="x unified",
         )
         fig.update_xaxes(title_text="Hora del Día (US/Central)", gridcolor="#1E293B")
-        fig.update_yaxes(title_text="Precio LMP ($/MWh)", color="#FF4B4B", secondary_y=False, gridcolor="#1E293B")
-        fig.update_yaxes(title_text="Potencia BESS (MW)", color="#00D4B1", secondary_y=True, showgrid=False)
+        fig.update_yaxes(
+            title_text="Precio LMP ($/MWh)",
+            color="#FF4B4B",
+            secondary_y=False,
+            gridcolor="#1E293B",
+        )
+        fig.update_yaxes(
+            title_text="Potencia BESS (MW)",
+            color="#00D4B1",
+            secondary_y=True,
+            showgrid=False,
+        )
 
         fig = apply_plotly_time_controls(fig)
         st.plotly_chart(fig, use_container_width=True)
@@ -380,14 +441,26 @@ def render_live_analytics(current_lang: str, spp_df: pd.DataFrame, fuel_df: pd.D
         with v2_col1:
             st.markdown(f"##### {t('view2_timeseries_title')}")
             fig_vol = go.Figure()
-            fig_vol.add_trace(go.Scatter(
-                x=spp_filtered["Time"],
-                y=spp_filtered["LMP"],
-                name="Houston LMP",
-                line=dict(color="#F59E0B", width=2),
-            ))
-            fig_vol.add_hline(y=p50, line_dash="dash", line_color="#10B981", annotation_text=f"P50: ${p50:.1f}")
-            fig_vol.add_hline(y=p90, line_dash="dash", line_color="#EF4444", annotation_text=f"P90: ${p90:.1f}")
+            fig_vol.add_trace(
+                go.Scatter(
+                    x=spp_filtered["Time"],
+                    y=spp_filtered["LMP"],
+                    name="Houston LMP",
+                    line=dict(color="#F59E0B", width=2),
+                )
+            )
+            fig_vol.add_hline(
+                y=p50,
+                line_dash="dash",
+                line_color="#10B981",
+                annotation_text=f"P50: ${p50:.1f}",
+            )
+            fig_vol.add_hline(
+                y=p90,
+                line_dash="dash",
+                line_color="#EF4444",
+                annotation_text=f"P90: ${p90:.1f}",
+            )
 
             fig_vol.update_layout(
                 template="plotly_dark",
@@ -422,7 +495,9 @@ def render_live_analytics(current_lang: str, spp_df: pd.DataFrame, fuel_df: pd.D
         st.subheader(t("view3_title"))
         spp_resamp = spp_filtered.set_index("Time").resample("15min").mean()
         fuel_resamp = fuel_filtered.set_index("Time").resample("15min").mean()
-        merged_df = pd.merge(spp_resamp, fuel_resamp, left_index=True, right_index=True, how="inner").reset_index()
+        merged_df = pd.merge(
+            spp_resamp, fuel_resamp, left_index=True, right_index=True, how="inner"
+        ).reset_index()
 
         if not merged_df.empty and "Power Storage" in merged_df.columns:
             fig_scatter = px.scatter(
@@ -432,7 +507,10 @@ def render_live_analytics(current_lang: str, spp_df: pd.DataFrame, fuel_df: pd.D
                 color="LMP",
                 size=np.abs(merged_df["Power Storage"]) + 10,
                 color_continuous_scale="Turbid",
-                labels={"LMP": "Price Houston LMP ($/MWh)", "Power Storage": "BESS Power (MW)"},
+                labels={
+                    "LMP": "Price Houston LMP ($/MWh)",
+                    "Power Storage": "BESS Power (MW)",
+                },
             )
             fig_scatter.update_layout(
                 template="plotly_dark",
@@ -446,18 +524,33 @@ def render_live_analytics(current_lang: str, spp_df: pd.DataFrame, fuel_df: pd.D
     elif active_view_key == "v4":
         st.subheader(t("view4_title"))
         f_col1, f_col2 = st.columns([3, 2])
-        raw_fuel_cols = [c for c in ["Natural Gas", "Wind", "Solar", "Coal and Lignite", "Nuclear", "Hydro", "Power Storage", "Other"] if c in fuel_filtered.columns]
+        raw_fuel_cols = [
+            c
+            for c in [
+                "Natural Gas",
+                "Wind",
+                "Solar",
+                "Coal and Lignite",
+                "Nuclear",
+                "Hydro",
+                "Power Storage",
+                "Other",
+            ]
+            if c in fuel_filtered.columns
+        ]
 
         with f_col1:
             fig_stack = go.Figure()
             for col in raw_fuel_cols:
-                fig_stack.add_trace(go.Scatter(
-                    x=fuel_filtered["Time"],
-                    y=fuel_filtered[col],
-                    name=col,
-                    mode="lines",
-                    stackgroup="one",
-                ))
+                fig_stack.add_trace(
+                    go.Scatter(
+                        x=fuel_filtered["Time"],
+                        y=fuel_filtered[col],
+                        name=col,
+                        mode="lines",
+                        stackgroup="one",
+                    )
+                )
             fig_stack.update_layout(
                 template="plotly_dark",
                 height=440,
@@ -472,20 +565,29 @@ def render_live_analytics(current_lang: str, spp_df: pd.DataFrame, fuel_df: pd.D
                 pie_labels = [c for c in raw_fuel_cols if float(latest_row[c]) > 0]
                 pie_values = [float(latest_row[c]) for c in pie_labels]
                 fig_pie = px.pie(names=pie_labels, values=pie_values, hole=0.45)
-                fig_pie.update_layout(template="plotly_dark", height=440, paper_bgcolor="#0B0E14")
+                fig_pie.update_layout(
+                    template="plotly_dark", height=440, paper_bgcolor="#0B0E14"
+                )
                 st.plotly_chart(fig_pie, use_container_width=True)
 
     elif active_view_key == "v5":
         st.subheader(t("view5_title"))
         fig_load = go.Figure()
-        fig_load.add_trace(go.Scatter(
-            x=load_filtered["Time"],
-            y=load_filtered["Load"],
-            name="ERCOT Load (MW)",
-            line=dict(color="#38BDF8", width=3),
-            fill="tozeroy",
-        ))
-        fig_load.update_layout(template="plotly_dark", height=500, paper_bgcolor="#0B0E14", plot_bgcolor="#131927")
+        fig_load.add_trace(
+            go.Scatter(
+                x=load_filtered["Time"],
+                y=load_filtered["Load"],
+                name="ERCOT Load (MW)",
+                line=dict(color="#38BDF8", width=3),
+                fill="tozeroy",
+            )
+        )
+        fig_load.update_layout(
+            template="plotly_dark",
+            height=500,
+            paper_bgcolor="#0B0E14",
+            plot_bgcolor="#131927",
+        )
         fig_load = apply_plotly_time_controls(fig_load)
         st.plotly_chart(fig_load, use_container_width=True)
 
@@ -497,6 +599,9 @@ def render_live_analytics(current_lang: str, spp_df: pd.DataFrame, fuel_df: pd.D
             st.dataframe(spp_filtered.tail(30), use_container_width=True)
         with t2:
             if "Power Storage" in fuel_filtered.columns:
-                st.dataframe(fuel_filtered[["Time", "Power Storage"]].tail(30), use_container_width=True)
+                st.dataframe(
+                    fuel_filtered[["Time", "Power Storage"]].tail(30),
+                    use_container_width=True,
+                )
         with t3:
             st.dataframe(fuel_filtered.tail(30), use_container_width=True)

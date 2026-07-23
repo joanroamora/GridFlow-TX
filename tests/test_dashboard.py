@@ -13,10 +13,7 @@ def test_filter_and_resample_empty():
 def test_filter_and_resample_presets():
     now = datetime.now()
     times = [now - timedelta(hours=i) for i in range(48, 0, -1)]
-    df = pd.DataFrame({
-        "Time": times,
-        "LMP": np.random.uniform(20, 100, len(times))
-    })
+    df = pd.DataFrame({"Time": times, "LMP": np.random.uniform(20, 100, len(times))})
 
     # Test 6h preset
     res_6h = filter_and_resample_dataset(df, preset="6h")

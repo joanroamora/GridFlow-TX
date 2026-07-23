@@ -6,7 +6,6 @@ Adding a new tool/microservice requires simply appending a configuration entry t
 
 from typing import List, Dict, Any
 
-
 SERVICES_REGISTRY: List[Dict[str, Any]] = [
     {
         "id": "live_analytics",
@@ -14,8 +13,14 @@ SERVICES_REGISTRY: List[Dict[str, Any]] = [
         "desc_key": "service_live_analytics_desc",
         "icon": "⚡",
         "status_badge": "LIVE OPERATIONAL",
-        "badge_color": "#10B981", # Green
-        "tags": ["ERCOT ISO", "Real-Time 15m LMP", "BESS Telemetry", "Fuel Mix", "System Load"],
+        "badge_color": "#10B981",  # Green
+        "tags": [
+            "ERCOT ISO",
+            "Real-Time 15m LMP",
+            "BESS Telemetry",
+            "Fuel Mix",
+            "System Load",
+        ],
         "module_path": "services.live_analytics",
         "handler_func": "render_live_analytics",
     },
@@ -25,8 +30,14 @@ SERVICES_REGISTRY: List[Dict[str, Any]] = [
         "desc_key": "service_bess_intelligence_desc",
         "icon": "🔋",
         "status_badge": "ML AI PREDICTIVE",
-        "badge_color": "#3B82F6", # Blue
-        "tags": ["Arbitrage Engine", "3-6h ML Forecast", "SOC Curve", "Revenue $/MW-day", "Smart Dispatch"],
+        "badge_color": "#3B82F6",  # Blue
+        "tags": [
+            "Arbitrage Engine",
+            "3-6h ML Forecast",
+            "SOC Curve",
+            "Revenue $/MW-day",
+            "Smart Dispatch",
+        ],
         "module_path": "services.bess_intelligence",
         "handler_func": "render_bess_intelligence",
     },

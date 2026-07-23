@@ -163,9 +163,11 @@ if "lang_code" not in st.session_state:
 
 current_lang = st.session_state["lang_code"]
 
+
 def t(key: str, **kwargs) -> str:
     """Helper rápido de traducción."""
     return get_text(current_lang, key, **kwargs)
+
 
 # BARRA SUPERIOR SUBTIL Y ULTRA COMPACTA CON BANDERAS REALES
 lang_flags_config = [
@@ -180,23 +182,27 @@ lang_flags_config = [
 
 flags_html_items = []
 for code_name, flag_url, label_str, title_str in lang_flags_config:
-    is_active = (current_lang == code_name)
-    active_style = "border: 1px solid #3B82F6; background-color: #1E3A8A; box-shadow: 0 0 6px rgba(59, 130, 246, 0.5); color: #FFFFFF;" if is_active else "border: 1px solid #1E293B; background-color: #111827; color: #94A3B8;"
-    
-    item_html = f'''<a href="?lang={code_name}" target="_self" title="{title_str}" style="text-decoration: none;">
+    is_active = current_lang == code_name
+    active_style = (
+        "border: 1px solid #3B82F6; background-color: #1E3A8A; box-shadow: 0 0 6px rgba(59, 130, 246, 0.5); color: #FFFFFF;"
+        if is_active
+        else "border: 1px solid #1E293B; background-color: #111827; color: #94A3B8;"
+    )
+
+    item_html = f"""<a href="?lang={code_name}" target="_self" title="{title_str}" style="text-decoration: none;">
         <div style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px; border-radius: 5px; font-size: 0.72rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; {active_style}">
             <img src="{flag_url}" width="15" height="10" style="border-radius: 2px; object-fit: cover; vertical-align: middle;" alt="{code_name}"/>
             <span>{label_str}</span>
         </div>
-    </a>'''
+    </a>"""
     flags_html_items.append(item_html)
 
-top_bar_html = f'''
+top_bar_html = f"""
 <div style="display: flex; justify-content: flex-end; align-items: center; gap: 5px; padding: 0px 0px 10px 0px; border-bottom: 1px solid #1E293B; margin-bottom: 15px;">
     <span style="font-size: 0.70rem; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; margin-right: 4px;">🌐 Language:</span>
     {''.join(flags_html_items)}
 </div>
-'''
+"""
 
 st.markdown(top_bar_html, unsafe_allow_html=True)
 
@@ -218,13 +224,17 @@ def load_ercot_telemetry():
         fuel_mix = iso.get_fuel_mix(date="today")
         if fuel_mix is not None and not fuel_mix.empty:
             fuel_df = fuel_mix.copy()
-            fuel_df["Time"] = pd.to_datetime(fuel_df["Time"]).dt.tz_convert("US/Central")
+            fuel_df["Time"] = pd.to_datetime(fuel_df["Time"]).dt.tz_convert(
+                "US/Central"
+            )
     except Exception as e:
         logger.error(f"Error obteniendo Fuel Mix: {e}")
 
     # 4.2 Obtener Precios SPP/LMP Houston Hub (HB_HOUSTON)
     try:
-        spp_raw = iso.get_spp(date="today", market="REAL_TIME_15_MIN", locations=["HB_HOUSTON"])
+        spp_raw = iso.get_spp(
+            date="today", market="REAL_TIME_15_MIN", locations=["HB_HOUSTON"]
+        )
         if spp_raw is not None and not spp_raw.empty:
             spp_df = spp_raw[["Time", "SPP"]].copy()
             spp_df.rename(columns={"SPP": "LMP"}, inplace=True)
@@ -237,7 +247,9 @@ def load_ercot_telemetry():
         sys_load = iso.get_load(date="today")
         if sys_load is not None and not sys_load.empty:
             load_df = sys_load[["Time", "Load"]].copy()
-            load_df["Time"] = pd.to_datetime(load_df["Time"]).dt.tz_convert("US/Central")
+            load_df["Time"] = pd.to_datetime(load_df["Time"]).dt.tz_convert(
+                "US/Central"
+            )
     except Exception as e:
         logger.error(f"Error obteniendo Demanda ERCOT: {e}")
 
@@ -246,47 +258,60 @@ def load_ercot_telemetry():
     if fuel_df.empty or len(fuel_df) < 200:
         times_15m = [now - timedelta(minutes=15 * i) for i in range(2880, -1, -1)]
         t_arr = np.linspace(0, 30 * 2 * np.pi, len(times_15m))
-        
-        storage_vals = np.sin(t_arr * 2) * 1200 + np.random.normal(100, 50, len(times_15m))
-        solar_vals = np.maximum(0, np.sin(t_arr - np.pi/2) * 15000)
-        wind_vals = 9000 + np.cos(t_arr * 0.5) * 4000 + np.random.normal(0, 300, len(times_15m))
-        gas_vals = 36000 + np.sin(t_arr) * 6000 + np.random.normal(0, 400, len(times_15m))
+
+        storage_vals = np.sin(t_arr * 2) * 1200 + np.random.normal(
+            100, 50, len(times_15m)
+        )
+        solar_vals = np.maximum(0, np.sin(t_arr - np.pi / 2) * 15000)
+        wind_vals = (
+            9000 + np.cos(t_arr * 0.5) * 4000 + np.random.normal(0, 300, len(times_15m))
+        )
+        gas_vals = (
+            36000 + np.sin(t_arr) * 6000 + np.random.normal(0, 400, len(times_15m))
+        )
         coal_vals = 9500 + np.random.normal(0, 150, len(times_15m))
         nuclear_vals = np.full(len(times_15m), 4950.0)
         hydro_vals = np.full(len(times_15m), 250.0)
         other_vals = np.full(len(times_15m), 100.0)
 
-        fuel_df = pd.DataFrame({
-            "Time": pd.to_datetime(times_15m),
-            "Power Storage": storage_vals,
-            "Solar": solar_vals,
-            "Wind": wind_vals,
-            "Natural Gas": gas_vals,
-            "Coal and Lignite": coal_vals,
-            "Nuclear": nuclear_vals,
-            "Hydro": hydro_vals,
-            "Other": other_vals,
-        })
+        fuel_df = pd.DataFrame(
+            {
+                "Time": pd.to_datetime(times_15m),
+                "Power Storage": storage_vals,
+                "Solar": solar_vals,
+                "Wind": wind_vals,
+                "Natural Gas": gas_vals,
+                "Coal and Lignite": coal_vals,
+                "Nuclear": nuclear_vals,
+                "Hydro": hydro_vals,
+                "Other": other_vals,
+            }
+        )
 
     if spp_df.empty or len(spp_df) < 200:
         times_15m = [now - timedelta(minutes=15 * i) for i in range(2880, -1, -1)]
-        base_prices = 32.0 + np.sin(np.linspace(0, 30 * 2 * np.pi, len(times_15m))) * 12.0 + np.random.normal(0, 6, len(times_15m))
+        base_prices = (
+            32.0
+            + np.sin(np.linspace(0, 30 * 2 * np.pi, len(times_15m))) * 12.0
+            + np.random.normal(0, 6, len(times_15m))
+        )
         spike_indices = np.random.choice(len(times_15m), size=35, replace=False)
         for idx in spike_indices:
             base_prices[idx] = np.random.uniform(220, 980)
-        spp_df = pd.DataFrame({
-            "Time": pd.to_datetime(times_15m),
-            "LMP": np.clip(base_prices, 8.0, 3000.0)
-        })
+        spp_df = pd.DataFrame(
+            {
+                "Time": pd.to_datetime(times_15m),
+                "LMP": np.clip(base_prices, 8.0, 3000.0),
+            }
+        )
 
     if load_df.empty or len(load_df) < 200:
         times_15m = [now - timedelta(minutes=15 * i) for i in range(2880, -1, -1)]
         t_arr = np.linspace(0, 30 * 2 * np.pi, len(times_15m))
-        load_vals = 68000 + np.sin(t_arr) * 16000 + np.random.normal(0, 400, len(times_15m))
-        load_df = pd.DataFrame({
-            "Time": pd.to_datetime(times_15m),
-            "Load": load_vals
-        })
+        load_vals = (
+            68000 + np.sin(t_arr) * 16000 + np.random.normal(0, 400, len(times_15m))
+        )
+        load_df = pd.DataFrame({"Time": pd.to_datetime(times_15m), "Load": load_vals})
 
     # Normalizar tz y orden
     for df in [fuel_df, spp_df, load_df]:
@@ -315,7 +340,7 @@ alert_threshold = st.sidebar.number_input(
     max_value=5000.0,
     value=100.0,
     step=10.0,
-    help=t("alert_threshold_help")
+    help=t("alert_threshold_help"),
 )
 
 st.sidebar.markdown("---")
@@ -338,8 +363,16 @@ latest_lmp = float(spp_df["LMP"].iloc[-1]) if not spp_df.empty else 0.0
 prev_lmp = float(spp_df["LMP"].iloc[-2]) if len(spp_df) > 1 else latest_lmp
 lmp_delta = latest_lmp - prev_lmp
 
-latest_bess = float(fuel_df["Power Storage"].iloc[-1]) if "Power Storage" in fuel_df.columns else 0.0
-prev_bess = float(fuel_df["Power Storage"].iloc[-2]) if len(fuel_df) > 1 and "Power Storage" in fuel_df.columns else latest_bess
+latest_bess = (
+    float(fuel_df["Power Storage"].iloc[-1])
+    if "Power Storage" in fuel_df.columns
+    else 0.0
+)
+prev_bess = (
+    float(fuel_df["Power Storage"].iloc[-2])
+    if len(fuel_df) > 1 and "Power Storage" in fuel_df.columns
+    else latest_bess
+)
 bess_delta = latest_bess - prev_bess
 
 max_lmp_today = float(spp_df["LMP"].max()) if not spp_df.empty else 0.0
@@ -380,9 +413,9 @@ with kpi1:
 
 with kpi2:
     status_str = (
-        t("bess_status_discharging") if latest_bess > 0
-        else t("bess_status_charging") if latest_bess < 0
-        else t("bess_status_neutral")
+        t("bess_status_discharging")
+        if latest_bess > 0
+        else t("bess_status_charging") if latest_bess < 0 else t("bess_status_neutral")
     )
     st.metric(
         label=t("kpi_bess", status=status_str),
@@ -415,7 +448,7 @@ st.markdown("---")
 st.subheader(t("nav_header"))
 st.caption(t("nav_caption"))
 
-views_dict = t("views") # Diccionario {"v1": "...", "v2": "...", ...}
+views_dict = t("views")  # Diccionario {"v1": "...", "v2": "...", ...}
 view_keys = list(views_dict.keys())
 view_labels = [views_dict[k] for k in view_keys]
 
@@ -426,9 +459,13 @@ if "active_view_key" not in st.session_state:
 selected_label = st.radio(
     label="Modo de Análisis / View Mode:",
     options=view_labels,
-    index=view_keys.index(st.session_state["active_view_key"]) if st.session_state["active_view_key"] in view_keys else 0,
+    index=(
+        view_keys.index(st.session_state["active_view_key"])
+        if st.session_state["active_view_key"] in view_keys
+        else 0
+    ),
     horizontal=True,
-    key="unified_view_selector"
+    key="unified_view_selector",
 )
 
 # Sincronizar clave seleccionada
@@ -444,7 +481,7 @@ st.markdown(
     <div class="time-control-card">
         <div class="time-control-title">{t('time_control_header')}</div>
     """,
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
 
 tc_col1, tc_col2, tc_col3 = st.columns([2, 3, 2])
@@ -453,18 +490,22 @@ with tc_col1:
     preset_dict = t("time_presets")
     preset_keys = list(preset_dict.keys())
     preset_labels = [preset_dict[k] for k in preset_keys]
-    
+
     selected_preset_label = st.selectbox(
         t("time_preset_label"),
         options=preset_labels,
         index=0,
-        key="time_preset_selectbox"
+        key="time_preset_selectbox",
     )
     active_preset = preset_keys[preset_labels.index(selected_preset_label)]
 
 with tc_col2:
     # Rango de tiempo personalizado o informativo
-    min_time_val = spp_df["Time"].min() if not spp_df.empty else datetime.now() - timedelta(hours=24)
+    min_time_val = (
+        spp_df["Time"].min()
+        if not spp_df.empty
+        else datetime.now() - timedelta(hours=24)
+    )
     max_time_val = spp_df["Time"].max() if not spp_df.empty else datetime.now()
 
     if active_preset == "custom":
@@ -474,23 +515,22 @@ with tc_col2:
             max_value=max_time_val.to_pydatetime(),
             value=(min_time_val.to_pydatetime(), max_time_val.to_pydatetime()),
             format="HH:mm",
-            key="custom_time_slider"
+            key="custom_time_slider",
         )
         custom_start, custom_end = time_range[0], time_range[1]
     else:
         custom_start, custom_end = None, None
-        st.info(f"📅 Window: {min_time_val.strftime('%H:%M')} ➔ {max_time_val.strftime('%H:%M')} (US/Central)")
+        st.info(
+            f"📅 Window: {min_time_val.strftime('%H:%M')} ➔ {max_time_val.strftime('%H:%M')} (US/Central)"
+        )
 
 with tc_col3:
     resample_dict = t("resample_options")
     resample_keys = list(resample_dict.keys())
     resample_labels = [resample_dict[k] for k in resample_keys]
-    
+
     selected_resample_label = st.selectbox(
-        t("resample_label"),
-        options=resample_labels,
-        index=0,
-        key="resample_selectbox"
+        t("resample_label"), options=resample_labels, index=0, key="resample_selectbox"
     )
     active_resample = resample_keys[resample_labels.index(selected_resample_label)]
 
@@ -498,7 +538,9 @@ st.markdown("</div>", unsafe_allow_html=True)
 
 
 # Función de Filtrado y Re-muestreo Supeditada al Objeto de Control Temporal
-def filter_and_resample_dataset(df, time_col="Time", preset="all", start_t=None, end_t=None, resample_freq="raw"):
+def filter_and_resample_dataset(
+    df, time_col="Time", preset="all", start_t=None, end_t=None, resample_freq="raw"
+):
     if df.empty or time_col not in df.columns:
         return df.copy()
 
@@ -527,7 +569,10 @@ def filter_and_resample_dataset(df, time_col="Time", preset="all", start_t=None,
         cutoff = max_t - timedelta(days=30)
         fdf = fdf[fdf[time_col] >= cutoff]
     elif preset == "custom" and start_t and end_t:
-        fdf = fdf[(fdf[time_col] >= pd.to_datetime(start_t)) & (fdf[time_col] <= pd.to_datetime(end_t))]
+        fdf = fdf[
+            (fdf[time_col] >= pd.to_datetime(start_t))
+            & (fdf[time_col] <= pd.to_datetime(end_t))
+        ]
 
     if fdf.empty:
         fdf = df.copy()
@@ -537,16 +582,28 @@ def filter_and_resample_dataset(df, time_col="Time", preset="all", start_t=None,
         rule = rule_map.get(resample_freq)
         if rule:
             num_cols = fdf.select_dtypes(include=[np.number]).columns
-            resampled = fdf.set_index(time_col)[num_cols].resample(rule).mean().dropna().reset_index()
+            resampled = (
+                fdf.set_index(time_col)[num_cols]
+                .resample(rule)
+                .mean()
+                .dropna()
+                .reset_index()
+            )
             fdf = resampled
 
     return fdf.sort_values(time_col).reset_index(drop=True)
 
 
 # Aplicar Objeto de Control Temporal a los DataFrames Globales de Trabajo
-spp_filtered = filter_and_resample_dataset(spp_df, "Time", active_preset, custom_start, custom_end, active_resample)
-fuel_filtered = filter_and_resample_dataset(fuel_df, "Time", active_preset, custom_start, custom_end, active_resample)
-load_filtered = filter_and_resample_dataset(load_df, "Time", active_preset, custom_start, custom_end, active_resample)
+spp_filtered = filter_and_resample_dataset(
+    spp_df, "Time", active_preset, custom_start, custom_end, active_resample
+)
+fuel_filtered = filter_and_resample_dataset(
+    fuel_df, "Time", active_preset, custom_start, custom_end, active_resample
+)
+load_filtered = filter_and_resample_dataset(
+    load_df, "Time", active_preset, custom_start, custom_end, active_resample
+)
 
 
 # Helper para añadir RangeSlider y Zoom Buttons de Plotly a cualquier gráfico
@@ -554,19 +611,21 @@ def apply_plotly_time_controls(fig):
     fig.update_xaxes(
         rangeslider=dict(visible=True, thickness=0.08),
         rangeselector=dict(
-            buttons=list([
-                dict(count=6, label="6h", step="hour", stepmode="backward"),
-                dict(count=12, label="12h", step="hour", stepmode="backward"),
-                dict(count=1, label="1d", step="day", stepmode="backward"),
-                dict(count=3, label="3d", step="day", stepmode="backward"),
-                dict(count=7, label="7d", step="day", stepmode="backward"),
-                dict(count=30, label="30d", step="day", stepmode="backward"),
-                dict(step="all", label="All")
-            ]),
+            buttons=list(
+                [
+                    dict(count=6, label="6h", step="hour", stepmode="backward"),
+                    dict(count=12, label="12h", step="hour", stepmode="backward"),
+                    dict(count=1, label="1d", step="day", stepmode="backward"),
+                    dict(count=3, label="3d", step="day", stepmode="backward"),
+                    dict(count=7, label="7d", step="day", stepmode="backward"),
+                    dict(count=30, label="30d", step="day", stepmode="backward"),
+                    dict(step="all", label="All"),
+                ]
+            ),
             font=dict(color="#E2E8F0", size=11),
             bgcolor="#1E293B",
-            activecolor="#3B82F6"
-        )
+            activecolor="#3B82F6",
+        ),
     )
     return fig
 
@@ -584,7 +643,7 @@ if active_view_key == "v1":
         chart_style = st.selectbox(
             t("chart_style_label"),
             [t("chart_style_fill"), t("chart_style_line")],
-            index=0
+            index=0,
         )
 
     fig = make_subplots(specs=[[{"secondary_y": True}]])
@@ -638,8 +697,18 @@ if active_view_key == "v1":
         plot_bgcolor="#131927",
     )
     fig.update_xaxes(title_text="Time (US/Central)", gridcolor="#1E293B")
-    fig.update_yaxes(title_text="<b>LMP ($/MWh)</b>", color="#EF4444", secondary_y=False, gridcolor="#1E293B")
-    fig.update_yaxes(title_text="<b>BESS Flow (MW)</b>", color="#10B981", secondary_y=True, showgrid=False)
+    fig.update_yaxes(
+        title_text="<b>LMP ($/MWh)</b>",
+        color="#EF4444",
+        secondary_y=False,
+        gridcolor="#1E293B",
+    )
+    fig.update_yaxes(
+        title_text="<b>BESS Flow (MW)</b>",
+        color="#10B981",
+        secondary_y=True,
+        showgrid=False,
+    )
 
     fig = apply_plotly_time_controls(fig)
     st.plotly_chart(fig, use_container_width=True)
@@ -667,29 +736,43 @@ elif active_view_key == "v2":
 
     with v_col1:
         st.markdown(f"##### {t('view2_trend_title')}")
-        
+
         spp_calc = spp_filtered.copy()
         spp_calc["SMA_4"] = spp_calc["LMP"].rolling(window=4, min_periods=1).mean()
         spp_calc["SMA_12"] = spp_calc["LMP"].rolling(window=12, min_periods=1).mean()
 
         fig_trend = go.Figure()
-        fig_trend.add_trace(go.Scatter(
-            x=spp_calc["Time"], y=spp_calc["LMP"],
-            name="LMP Real", line=dict(color="#EF4444", width=1.5, dash="dot")
-        ))
-        fig_trend.add_trace(go.Scatter(
-            x=spp_calc["Time"], y=spp_calc["SMA_4"],
-            name="SMA 1h", line=dict(color="#3B82F6", width=2.5)
-        ))
-        fig_trend.add_trace(go.Scatter(
-            x=spp_calc["Time"], y=spp_calc["SMA_12"],
-            name="SMA 3h", line=dict(color="#F59E0B", width=2)
-        ))
+        fig_trend.add_trace(
+            go.Scatter(
+                x=spp_calc["Time"],
+                y=spp_calc["LMP"],
+                name="LMP Real",
+                line=dict(color="#EF4444", width=1.5, dash="dot"),
+            )
+        )
+        fig_trend.add_trace(
+            go.Scatter(
+                x=spp_calc["Time"],
+                y=spp_calc["SMA_4"],
+                name="SMA 1h",
+                line=dict(color="#3B82F6", width=2.5),
+            )
+        )
+        fig_trend.add_trace(
+            go.Scatter(
+                x=spp_calc["Time"],
+                y=spp_calc["SMA_12"],
+                name="SMA 3h",
+                line=dict(color="#F59E0B", width=2),
+            )
+        )
         fig_trend.update_layout(
             template="plotly_dark",
             height=420,
             margin=dict(l=10, r=10, t=30, b=10),
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+            legend=dict(
+                orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1
+            ),
             paper_bgcolor="#0B0E14",
             plot_bgcolor="#131927",
         )
@@ -700,9 +783,13 @@ elif active_view_key == "v2":
 
     with v_col2:
         st.markdown(f"##### {t('view2_hist_title')}")
-        
-        p50 = float(spp_filtered["LMP"].quantile(0.50)) if not spp_filtered.empty else 0.0
-        p90 = float(spp_filtered["LMP"].quantile(0.90)) if not spp_filtered.empty else 0.0
+
+        p50 = (
+            float(spp_filtered["LMP"].quantile(0.50)) if not spp_filtered.empty else 0.0
+        )
+        p90 = (
+            float(spp_filtered["LMP"].quantile(0.90)) if not spp_filtered.empty else 0.0
+        )
 
         fig_hist = px.histogram(
             spp_filtered,
@@ -711,16 +798,26 @@ elif active_view_key == "v2":
             color_discrete_sequence=["#6366F1"],
             labels={"LMP": "Price LMP ($/MWh)"},
         )
-        fig_hist.add_vline(x=p50, line_dash="dash", line_color="#10B981", annotation_text=f"P50: ${p50:.1f}")
-        fig_hist.add_vline(x=p90, line_dash="dash", line_color="#EF4444", annotation_text=f"P90: ${p90:.1f}")
-        
+        fig_hist.add_vline(
+            x=p50,
+            line_dash="dash",
+            line_color="#10B981",
+            annotation_text=f"P50: ${p50:.1f}",
+        )
+        fig_hist.add_vline(
+            x=p90,
+            line_dash="dash",
+            line_color="#EF4444",
+            annotation_text=f"P90: ${p90:.1f}",
+        )
+
         fig_hist.update_layout(
             template="plotly_dark",
             height=420,
             margin=dict(l=10, r=10, t=30, b=10),
             paper_bgcolor="#0B0E14",
             plot_bgcolor="#131927",
-            yaxis_title="Intervals Count"
+            yaxis_title="Intervals Count",
         )
         fig_hist.update_xaxes(gridcolor="#1E293B")
         fig_hist.update_yaxes(gridcolor="#1E293B")
@@ -747,7 +844,9 @@ elif active_view_key == "v3":
 
     spp_resamp = spp_filtered.set_index("Time").resample("15min").mean()
     fuel_resamp = fuel_filtered.set_index("Time").resample("15min").mean()
-    merged_df = pd.merge(spp_resamp, fuel_resamp, left_index=True, right_index=True, how="inner").reset_index()
+    merged_df = pd.merge(
+        spp_resamp, fuel_resamp, left_index=True, right_index=True, how="inner"
+    ).reset_index()
 
     if not merged_df.empty and "Power Storage" in merged_df.columns:
         fig_scatter = px.scatter(
@@ -757,13 +856,23 @@ elif active_view_key == "v3":
             color="LMP",
             size=np.abs(merged_df["Power Storage"]) + 10,
             color_continuous_scale="Turbid",
-            labels={"LMP": "Price Houston LMP ($/MWh)", "Power Storage": "BESS Power (MW)"},
+            labels={
+                "LMP": "Price Houston LMP ($/MWh)",
+                "Power Storage": "BESS Power (MW)",
+            },
             hover_data=["Time"],
         )
 
         mean_price = merged_df["LMP"].mean()
-        fig_scatter.add_vline(x=mean_price, line_dash="dash", line_color="#94A3B8", annotation_text=f"Mean (${mean_price:.1f})")
-        fig_scatter.add_hline(y=0, line_color="#64748B", annotation_text="Neutral (0 MW)")
+        fig_scatter.add_vline(
+            x=mean_price,
+            line_dash="dash",
+            line_color="#94A3B8",
+            annotation_text=f"Mean (${mean_price:.1f})",
+        )
+        fig_scatter.add_hline(
+            y=0, line_color="#64748B", annotation_text="Neutral (0 MW)"
+        )
 
         fig_scatter.update_layout(
             template="plotly_dark",
@@ -799,8 +908,21 @@ elif active_view_key == "v4":
     f_col1, f_col2 = st.columns([3, 2])
 
     fuel_names_map = t("fuel_names")
-    raw_fuel_cols = [c for c in ["Natural Gas", "Wind", "Solar", "Coal and Lignite", "Nuclear", "Hydro", "Power Storage", "Other"] if c in fuel_filtered.columns]
-    
+    raw_fuel_cols = [
+        c
+        for c in [
+            "Natural Gas",
+            "Wind",
+            "Solar",
+            "Coal and Lignite",
+            "Nuclear",
+            "Hydro",
+            "Power Storage",
+            "Other",
+        ]
+        if c in fuel_filtered.columns
+    ]
+
     colors = {
         "Natural Gas": "#EF4444",
         "Wind": "#06B6D4",
@@ -814,24 +936,28 @@ elif active_view_key == "v4":
 
     with f_col1:
         st.markdown(f"##### {t('view4_stack_title')}")
-        
+
         fig_stack = go.Figure()
         for col in raw_fuel_cols:
             display_name = fuel_names_map.get(col, col)
-            fig_stack.add_trace(go.Scatter(
-                x=fuel_filtered["Time"],
-                y=fuel_filtered[col],
-                name=display_name,
-                mode="lines",
-                stackgroup="one",
-                line=dict(width=0.5, color=colors.get(col, "#94A3B8")),
-            ))
+            fig_stack.add_trace(
+                go.Scatter(
+                    x=fuel_filtered["Time"],
+                    y=fuel_filtered[col],
+                    name=display_name,
+                    mode="lines",
+                    stackgroup="one",
+                    line=dict(width=0.5, color=colors.get(col, "#94A3B8")),
+                )
+            )
 
         fig_stack.update_layout(
             template="plotly_dark",
             height=440,
             margin=dict(l=10, r=10, t=30, b=10),
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+            legend=dict(
+                orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1
+            ),
             paper_bgcolor="#0B0E14",
             plot_bgcolor="#131927",
         )
@@ -842,7 +968,7 @@ elif active_view_key == "v4":
 
     with f_col2:
         st.markdown(f"##### {t('view4_pie_title')}")
-        
+
         if not fuel_filtered.empty:
             latest_row = fuel_filtered.iloc[-1]
             pie_labels = []
@@ -892,20 +1018,32 @@ elif active_view_key == "v5":
     st.subheader(t("view5_title"))
 
     fig_load = go.Figure()
-    fig_load.add_trace(go.Scatter(
-        x=load_filtered["Time"],
-        y=load_filtered["Load"],
-        name="ERCOT Load (MW)",
-        line=dict(color="#38BDF8", width=3),
-        fill="tozeroy",
-        fillcolor="rgba(56, 189, 248, 0.12)",
-    ))
+    fig_load.add_trace(
+        go.Scatter(
+            x=load_filtered["Time"],
+            y=load_filtered["Load"],
+            name="ERCOT Load (MW)",
+            line=dict(color="#38BDF8", width=3),
+            fill="tozeroy",
+            fillcolor="rgba(56, 189, 248, 0.12)",
+        )
+    )
 
     max_load_val = load_filtered["Load"].max() if not load_filtered.empty else 0.0
     min_load_val = load_filtered["Load"].min() if not load_filtered.empty else 0.0
 
-    fig_load.add_hline(y=max_load_val, line_dash="dash", line_color="#EF4444", annotation_text=f"Peak ({max_load_val:,.0f} MW)")
-    fig_load.add_hline(y=min_load_val, line_dash="dash", line_color="#10B981", annotation_text=f"Min ({min_load_val:,.0f} MW)")
+    fig_load.add_hline(
+        y=max_load_val,
+        line_dash="dash",
+        line_color="#EF4444",
+        annotation_text=f"Peak ({max_load_val:,.0f} MW)",
+    )
+    fig_load.add_hline(
+        y=min_load_val,
+        line_dash="dash",
+        line_color="#10B981",
+        annotation_text=f"Min ({min_load_val:,.0f} MW)",
+    )
 
     fig_load.update_layout(
         template="plotly_dark",
@@ -952,8 +1090,15 @@ with st.expander(t("table_expander_title")):
     with t2:
         st.subheader(t("tab_bess"))
         if "Power Storage" in fuel_filtered.columns:
-            st.dataframe(fuel_filtered[["Time", "Power Storage"]].tail(30), use_container_width=True)
-            csv_bess = fuel_filtered[["Time", "Power Storage"]].to_csv(index=False).encode("utf-8")
+            st.dataframe(
+                fuel_filtered[["Time", "Power Storage"]].tail(30),
+                use_container_width=True,
+            )
+            csv_bess = (
+                fuel_filtered[["Time", "Power Storage"]]
+                .to_csv(index=False)
+                .encode("utf-8")
+            )
             st.download_button(
                 label=t("download_bess"),
                 data=csv_bess,
