@@ -145,22 +145,12 @@ st.markdown(
 if "lang_code" not in st.session_state:
     st.session_state["lang_code"] = "es"
 
-# Sidebar - Seleccionador de Idioma
-st.sidebar.header("🌐 Idioma / Language")
-selected_lang_str = st.sidebar.selectbox(
-    "Seleccionar Idioma",
-    options=list(LANG_OPTIONS.values()),
-    index=list(LANG_CODE_MAP.keys()).index(
-        LANG_OPTIONS.get(st.session_state["lang_code"], "🇲🇽 Español")
-    ),
-    key="lang_selectbox"
-)
-st.session_state["lang_code"] = LANG_CODE_MAP[selected_lang_str]
 current_lang = st.session_state["lang_code"]
 
 def t(key: str, **kwargs) -> str:
     """Helper rápido de traducción."""
     return get_text(current_lang, key, **kwargs)
+
 
 
 # 4. Carga y Procesamiento de Datos ERCOT
@@ -292,8 +282,44 @@ st.sidebar.markdown(t("tech_specs_body"))
 
 
 # 7. ENCABEZADO Y KPIS DEL DASHBOARD
-st.title(t("page_title"))
-st.caption(t("page_subtitle"))
+head_col1, head_col2 = st.columns([3, 2])
+
+with head_col1:
+    st.title(t("page_title"))
+    st.caption(t("page_subtitle"))
+
+with head_col2:
+    st.markdown(
+        """
+        <div style="text-align: right; margin-bottom: 6px; padding-top: 10px;">
+            <span style="font-size: 0.85rem; font-weight: 700; color: #94A3B8; letter-spacing: 0.5px; text-transform: uppercase;">
+                🌐 Idioma / Language
+            </span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    
+    lang_items = [
+        ("es", "🇲🇽", "ES"),
+        ("en", "🇺🇸", "EN"),
+        ("fr", "🇫🇷", "FR"),
+        ("zh", "🇨🇳", "ZH"),
+        ("ko", "🇰🇷", "KO"),
+        ("it", "🇮🇹", "IT"),
+        ("pt", "🇵🇹", "PT"),
+    ]
+    
+    flag_cols = st.columns(len(lang_items))
+    for idx, (code, flag, name) in enumerate(lang_items):
+        with flag_cols[idx]:
+            is_active = (current_lang == code)
+            btn_type = "primary" if is_active else "secondary"
+            if st.button(f"{flag} {name}", key=f"lang_btn_{code}", type=btn_type, use_container_width=True):
+                if st.session_state["lang_code"] != code:
+                    st.session_state["lang_code"] = code
+                    st.rerun()
+
 
 # Métricas Calculadas
 latest_lmp = float(spp_df["LMP"].iloc[-1]) if not spp_df.empty else 0.0
