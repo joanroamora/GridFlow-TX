@@ -1,21 +1,78 @@
-name: CD Pipeline
+name: Enterprise Multi-Environment CD Pipeline
 
 on:
   push:
     branches:
       - main
+      - Feature2
+      - staging
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Select Target Environment (dev, staging, prod)'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
 
 jobs:
-  terraform-cd:
-    name: Terraform Apply
+  environment-config:
+    name: Environment & Region Matrix Setup
     runs-on: ubuntu-latest
+    outputs:
+      target_env: ${{ steps.env_setup.outputs.target_env }}
+      aws_region: ${{ steps.env_setup.outputs.aws_region }}
+      endpoint_url: ${{ steps.env_setup.outputs.endpoint_url }}
+    steps:
+      - name: Determine Environment & AWS Target Region
+        id: env_setup
+        run: |
+          ENV_NAME="${{ github.event.inputs.environment }}"
+          if [ -z "$ENV_NAME" ]; then
+            if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+              ENV_NAME="dev"
+            elif [ "${{ github.ref }}" = "refs/heads/staging" ]; then
+              ENV_NAME="staging"
+            else
+              ENV_NAME="dev"
+            fi
+          fi
+
+          if [ "$ENV_NAME" = "dev" ]; then
+            REGION="us-east-1"
+            ENDPOINT="http://dev.gridflow-tx.us-east-1.amazonaws.com:8501"
+          elif [ "$ENV_NAME" = "staging" ]; then
+            REGION="us-east-2"
+            ENDPOINT="http://staging.gridflow-tx.us-east-2.amazonaws.com:8501"
+          elif [ "$ENV_NAME" = "prod" ]; then
+            REGION="us-west-2"
+            ENDPOINT="http://prod.gridflow-tx.us-west-2.amazonaws.com:8501"
+          fi
+
+          echo "target_env=$ENV_NAME" >> $GITHUB_OUTPUT
+          echo "aws_region=$REGION" >> $GITHUB_OUTPUT
+          echo "endpoint_url=$ENDPOINT" >> $GITHUB_OUTPUT
+
+          echo "### 🌐 Target Deployment Environment Configuration" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment:** \`$ENV_NAME\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **AWS Target Region:** \`$REGION\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Configured Endpoint:** \`$ENDPOINT\`" >> $GITHUB_STEP_SUMMARY
+
+  terraform-cd:
+    name: Infrastructure Provisioning (Terraform)
+    needs: environment-config
+    runs-on: ubuntu-latest
+    if: needs.environment-config.outputs.target_env == 'dev'
     outputs:
       ec2_public_ip: ${{ steps.tf_output.outputs.ec2_public_ip }}
     defaults:
       run:
         working-directory: terraform
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Setup Terraform
@@ -28,7 +85,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+          aws-region: ${{ needs.environment-config.outputs.aws_region }}
 
       - name: Terraform Init
         run: terraform init
@@ -41,11 +98,12 @@ jobs:
         run: echo "ec2_public_ip=$(terraform output -raw ec2_public_ip)" >> $GITHUB_OUTPUT
 
   ansible-setup:
-    name: Ansible Configuration Management
-    needs: terraform-cd
+    name: Configuration Management (Ansible)
+    needs: [environment-config, terraform-cd]
     runs-on: ubuntu-latest
+    if: needs.environment-config.outputs.target_env == 'dev'
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Set up Python
@@ -56,7 +114,7 @@ jobs:
       - name: Install Ansible
         run: pip install ansible
 
-      - name: Set up SSH key
+      - name: Set up SSH Key
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
@@ -74,22 +132,56 @@ jobs:
           ansible-playbook -i ansible/inventory.ini ansible/playbooks/setup-node.yml
 
   deploy-app:
-    name: Build & Deploy Docker Application
-    needs: [terraform-cd, ansible-setup]
+    name: Application Deployment & Verification
+    needs: [environment-config, terraform-cd, ansible-setup]
     runs-on: ubuntu-latest
+    if: needs.environment-config.outputs.target_env == 'dev'
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up SSH key
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Ansible
+        run: pip install ansible
+
+      - name: Set up SSH Key
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ needs.terraform-cd.outputs.ec2_public_ip }} >> ~/.ssh/known_hosts
 
-      - name: Deploy Container via SSH & Docker Compose
+      - name: Run Ansible Deploy Playbook
         run: |
-          ssh ec2-user@${{ needs.terraform-cd.outputs.ec2_public_ip }} "mkdir -p ~/gridflow-app"
-          scp docker-compose.yml Dockerfile requirements.txt dashboard.py ec2-user@${{ needs.terraform-cd.outputs.ec2_public_ip }}:~/gridflow-app/
-          ssh ec2-user@${{ needs.terraform-cd.outputs.ec2_public_ip }} "cd ~/gridflow-app && docker-compose up -d --build"
+          cat <<EOF > ansible/inventory.ini
+          [ec2_nodes]
+          ec2-app-node ansible_host=${{ needs.terraform-cd.outputs.ec2_public_ip }} ansible_user=ec2-user ansible_ssh_private_key_file=~/.ssh/id_rsa
+          EOF
+          ansible-playbook -i ansible/inventory.ini ansible/playbooks/deploy-app.yml
+
+      - name: Report Active Environment Deployment Status
+        run: |
+          echo "### 🚀 Live Dev Environment Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status:** Active & Deployed" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment:** Dev (\`us-east-1\`)" >> $GITHUB_STEP_SUMMARY
+          echo "- **EC2 Host Public IP:** \`${{ needs.terraform-cd.outputs.ec2_public_ip }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Live Access Endpoint:** \`http://${{ needs.terraform-cd.outputs.ec2_public_ip }}:8501\`" >> $GITHUB_STEP_SUMMARY
+
+  environment-endpoints-summary:
+    name: Environments Endpoint Matrix Status
+    needs: environment-config
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Display Multi-Environment Endpoint Matrix
+        run: |
+          echo "## 🗺️ Multi-Environment Infrastructure Endpoint Matrix" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | Target AWS Region | Deployment Status | Configured Endpoint |" >> $GITHUB_STEP_SUMMARY
+          echo "| :--- | :--- | :--- | :--- |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🟢 **Dev** | \`us-east-1\` | Active Deployment Target | \`http://dev.gridflow-tx.us-east-1.amazonaws.com:8501\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🟡 **Staging** | \`us-east-2\` | Configured Endpoint Target (Inactive) | \`http://staging.gridflow-tx.us-east-2.amazonaws.com:8501\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔴 **Prod** | \`us-west-2\` | Configured Endpoint Target (Inactive) | \`http://prod.gridflow-tx.us-west-2.amazonaws.com:8501\` |" >> $GITHUB_STEP_SUMMARY
